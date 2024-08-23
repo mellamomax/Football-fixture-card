@@ -36,6 +36,9 @@ class FootballFixtureCard extends HTMLElement {
           margin-right: 10px;
         }
         .score {
+          font-weight: normal;
+        }
+        .score.bold {
           font-weight: bold;
         }
       </style>
@@ -61,8 +64,11 @@ class FootballFixtureCard extends HTMLElement {
     // Clear any existing content
     fixturesContainer.innerHTML = '';
 
+    // Sort fixtures by date
+    const sortedFixtures = fixtures.sort((a, b) => new Date(a.date) - new Date(b.date));
+
     // Group fixtures by date
-    const groupedFixtures = fixtures.reduce((acc, fixture) => {
+    const groupedFixtures = sortedFixtures.reduce((acc, fixture) => {
       const fixtureDate = new Date(fixture.date);
       const formattedDate = fixtureDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric' });
 
@@ -96,11 +102,38 @@ class FootballFixtureCard extends HTMLElement {
 
         const scoreElement = document.createElement('div');
         scoreElement.className = 'score';
-        scoreElement.innerHTML = `
-          <span>${fixture.score.home ?? '-'}</span>
-          <span> : </span>
-          <span>${fixture.score.away ?? '-'}</span>
-        `;
+
+        const homeScore = fixture.score.home;
+        const awayScore = fixture.score.away;
+
+        // Determine if the score needs to be bold
+        if (homeScore !== null && awayScore !== null) {
+          if (homeScore > awayScore) {
+            scoreElement.innerHTML = `
+              <span class="bold">${homeScore}</span>
+              <span> : </span>
+              <span>${awayScore}</span>
+            `;
+          } else if (awayScore > homeScore) {
+            scoreElement.innerHTML = `
+              <span>${homeScore}</span>
+              <span> : </span>
+              <span class="bold">${awayScore}</span>
+            `;
+          } else {
+            scoreElement.innerHTML = `
+              <span class="bold">${homeScore}</span>
+              <span> : </span>
+              <span class="bold">${awayScore}</span>
+            `;
+          }
+        } else {
+          scoreElement.innerHTML = `
+            <span>${homeScore ?? '-'}</span>
+            <span> : </span>
+            <span>${awayScore ?? '-'}</span>
+          `;
+        }
 
         fixtureElement.appendChild(teamsElement);
         fixtureElement.appendChild(scoreElement);
