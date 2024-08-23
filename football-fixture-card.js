@@ -78,19 +78,28 @@ class FootballFixtureCard extends HTMLElement {
       </div>
     `;
 
-    // Set up event listeners for the arrows
-    root.getElementById('prev-round').addEventListener('click', () => this.changeRound(-1));
-    root.getElementById('next-round').addEventListener('click', () => this.changeRound(1));
+    this.currentRound = 1;  // Initialize the current round
   }
 
   set hass(hass) {
     this.hass = hass;
-    this.currentRound = hass.states[this.config.entity].attributes.current_round || 1;
-    this.displayFixtures(this.currentRound); // Display current round by default
+
+    // Add event listeners only once
+    if (!this.listenersAdded) {
+      this.shadowRoot.getElementById('prev-round').addEventListener('click', () => this.changeRound(-1));
+      this.shadowRoot.getElementById('next-round').addEventListener('click', () => this.changeRound(1));
+      this.listenersAdded = true;  // Flag to prevent adding listeners multiple times
+    }
+
+    // Display the current round's fixtures
+    this.displayFixtures(this.currentRound);
   }
 
   changeRound(direction) {
     this.currentRound += direction;
+    if (this.currentRound < 1) {
+      this.currentRound = 1;  // Prevent navigating to a round less than 1
+    }
     this.displayFixtures(this.currentRound);
   }
 
