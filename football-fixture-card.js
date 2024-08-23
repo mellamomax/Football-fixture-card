@@ -102,7 +102,7 @@ class FootballFixtureCard extends HTMLElement {
       return;
     }
 
-    const fixturesKey = round === this.currentRound ? 'current_round_fixtures' : 'next_round_fixtures';
+    const fixturesKey = `Round ${round} Fixtures`;
     const fixtures = state.attributes[fixturesKey] || [];
     const root = this.shadowRoot;
     const fixturesContainer = root.getElementById('fixtures');
