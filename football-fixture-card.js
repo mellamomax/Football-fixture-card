@@ -15,16 +15,87 @@ class FootballFixtureCard extends HTMLElement {
           border-radius: var(--ha-card-border-radius, 12px);
           box-shadow: var(--ha-card-box-shadow, 0 2px 6px rgba(0,0,0,.15));
         }
+        .fixture {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+        }
+        .teams {
+          display: flex;
+          align-items: center;
+        }
+        .team-logo {
+          height: 30px;
+          width: 30px;
+          margin-right: 10px;
+        }
+        .score {
+          font-weight: bold;
+        }
+        .date-venue {
+          font-size: 0.9em;
+          color: #666;
+        }
       </style>
       <div class="card">
         <h1>Football Fixture Card</h1>
-        <p>This is a placeholder card.</p>
+        <div id="fixtures"></div>
       </div>
     `;
   }
 
   set hass(hass) {
-    // No need to do anything here since the card is a placeholder
+    const entityId = this.config.entity;
+    const state = hass.states[entityId];
+
+    if (!state) {
+      return;
+    }
+
+    const fixtures = state.attributes.fixtures || [];
+    const root = this.shadowRoot;
+    const fixturesContainer = root.getElementById('fixtures');
+
+    // Clear any existing content
+    fixturesContainer.innerHTML = '';
+
+    // Render each fixture
+    fixtures.forEach(fixture => {
+      const fixtureElement = document.createElement('div');
+      fixtureElement.className = 'fixture';
+
+      const teamsElement = document.createElement('div');
+      teamsElement.className = 'teams';
+      teamsElement.innerHTML = `
+        <img class="team-logo" src="${fixture.home_team_logo}" alt="${fixture.home_team} logo">
+        <span>${fixture.home_team}</span>
+        <span> vs </span>
+        <span>${fixture.away_team}</span>
+        <img class="team-logo" src="${fixture.away_team_logo}" alt="${fixture.away_team} logo">
+      `;
+
+      const scoreElement = document.createElement('div');
+      scoreElement.className = 'score';
+      scoreElement.innerHTML = `
+        <span>${fixture.score.home ?? '-'}</span>
+        <span> : </span>
+        <span>${fixture.score.away ?? '-'}</span>
+      `;
+
+      const dateVenueElement = document.createElement('div');
+      dateVenueElement.className = 'date-venue';
+      dateVenueElement.innerHTML = `
+        <div>${new Date(fixture.date).toLocaleString()}</div>
+        <div>${fixture.venue}</div>
+      `;
+
+      fixtureElement.appendChild(teamsElement);
+      fixtureElement.appendChild(scoreElement);
+      fixtureElement.appendChild(dateVenueElement);
+
+      fixturesContainer.appendChild(fixtureElement);
+    });
   }
 
   getCardSize() {
@@ -33,7 +104,6 @@ class FootballFixtureCard extends HTMLElement {
 }
 
 customElements.define('football-fixture-card', FootballFixtureCard);
-
 
 // Code to show the card in HA card-picker
 const FootballFixtureCardDescriptor = {
