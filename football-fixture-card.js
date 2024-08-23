@@ -15,6 +15,11 @@ class FootballFixtureCard extends HTMLElement {
           border-radius: var(--ha-card-border-radius, 12px);
           box-shadow: var(--ha-card-box-shadow, 0 2px 6px rgba(0,0,0,.15));
         }
+        .date-group {
+          margin-top: 16px;
+          font-weight: bold;
+          font-size: 1.2em;
+        }
         .fixture {
           display: flex;
           justify-content: space-between;
@@ -32,10 +37,6 @@ class FootballFixtureCard extends HTMLElement {
         }
         .score {
           font-weight: bold;
-        }
-        .date-venue {
-          font-size: 0.9em;
-          color: #666;
         }
       </style>
       <div class="card">
@@ -60,41 +61,51 @@ class FootballFixtureCard extends HTMLElement {
     // Clear any existing content
     fixturesContainer.innerHTML = '';
 
-    // Render each fixture
-    fixtures.forEach(fixture => {
-      const fixtureElement = document.createElement('div');
-      fixtureElement.className = 'fixture';
+    // Group fixtures by date
+    const groupedFixtures = fixtures.reduce((acc, fixture) => {
+      const fixtureDate = new Date(fixture.date);
+      const formattedDate = fixtureDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric' });
 
-      const teamsElement = document.createElement('div');
-      teamsElement.className = 'teams';
-      teamsElement.innerHTML = `
-        <img class="team-logo" src="${fixture.home_team_logo}" alt="${fixture.home_team} logo">
-        <span>${fixture.home_team}</span>
-        <span> vs </span>
-        <span>${fixture.away_team}</span>
-        <img class="team-logo" src="${fixture.away_team_logo}" alt="${fixture.away_team} logo">
-      `;
+      if (!acc[formattedDate]) {
+        acc[formattedDate] = [];
+      }
+      acc[formattedDate].push(fixture);
+      return acc;
+    }, {});
 
-      const scoreElement = document.createElement('div');
-      scoreElement.className = 'score';
-      scoreElement.innerHTML = `
-        <span>${fixture.score.home ?? '-'}</span>
-        <span> : </span>
-        <span>${fixture.score.away ?? '-'}</span>
-      `;
+    // Render grouped fixtures
+    Object.keys(groupedFixtures).forEach(date => {
+      const dateHeader = document.createElement('div');
+      dateHeader.className = 'date-group';
+      dateHeader.textContent = date;
+      fixturesContainer.appendChild(dateHeader);
 
-      const dateVenueElement = document.createElement('div');
-      dateVenueElement.className = 'date-venue';
-      dateVenueElement.innerHTML = `
-        <div>${new Date(fixture.date).toLocaleString()}</div>
-        <div>${fixture.venue}</div>
-      `;
+      groupedFixtures[date].forEach(fixture => {
+        const fixtureElement = document.createElement('div');
+        fixtureElement.className = 'fixture';
 
-      fixtureElement.appendChild(teamsElement);
-      fixtureElement.appendChild(scoreElement);
-      fixtureElement.appendChild(dateVenueElement);
+        const teamsElement = document.createElement('div');
+        teamsElement.className = 'teams';
+        teamsElement.innerHTML = `
+          <img class="team-logo" src="${fixture.home_team_logo}" alt="${fixture.home_team} logo">
+          <span>${fixture.home_team}</span>
+          <span> vs </span>
+          <span>${fixture.away_team}</span>
+          <img class="team-logo" src="${fixture.away_team_logo}" alt="${fixture.away_team} logo">
+        `;
 
-      fixturesContainer.appendChild(fixtureElement);
+        const scoreElement = document.createElement('div');
+        scoreElement.className = 'score';
+        scoreElement.innerHTML = `
+          <span>${fixture.score.home ?? '-'}</span>
+          <span> : </span>
+          <span>${fixture.score.away ?? '-'}</span>
+        `;
+
+        fixtureElement.appendChild(teamsElement);
+        fixtureElement.appendChild(scoreElement);
+        fixturesContainer.appendChild(fixtureElement);
+      });
     });
   }
 
