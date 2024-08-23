@@ -15,6 +15,21 @@ class FootballFixtureCard extends HTMLElement {
           border-radius: var(--ha-card-border-radius, 12px);
           box-shadow: var(--ha-card-box-shadow, 0 2px 6px rgba(0,0,0,.15));
         }
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+        }
+        .arrow {
+          cursor: pointer;
+          font-size: 1.5em;
+          user-select: none;
+        }
+        .round-title {
+          font-weight: bold;
+          font-size: 1.2em;
+        }
         .date-group {
           margin-top: 16px;
           font-weight: bold;
@@ -54,23 +69,47 @@ class FootballFixtureCard extends HTMLElement {
         }
       </style>
       <div class="card">
-        <h1>Football Fixture Card</h1>
+        <div class="header">
+          <div id="prev-round" class="arrow">&larr;</div>
+          <div id="round-title" class="round-title">Round 1</div>
+          <div id="next-round" class="arrow">&rarr;</div>
+        </div>
         <div id="fixtures"></div>
       </div>
     `;
+
+    // Set up event listeners for the arrows
+    root.getElementById('prev-round').addEventListener('click', () => this.changeRound(-1));
+    root.getElementById('next-round').addEventListener('click', () => this.changeRound(1));
   }
 
   set hass(hass) {
+    this.hass = hass;
+    this.currentRound = hass.states[this.config.entity].attributes.current_round || 1;
+    this.displayFixtures(this.currentRound); // Display current round by default
+  }
+
+  changeRound(direction) {
+    this.currentRound += direction;
+    this.displayFixtures(this.currentRound);
+  }
+
+  displayFixtures(round) {
     const entityId = this.config.entity;
-    const state = hass.states[entityId];
+    const state = this.hass.states[entityId];
 
     if (!state) {
       return;
     }
 
-    const fixtures = state.attributes.fixtures || [];
+    const fixturesKey = round === this.currentRound ? 'current_round_fixtures' : 'next_round_fixtures';
+    const fixtures = state.attributes[fixturesKey] || [];
     const root = this.shadowRoot;
     const fixturesContainer = root.getElementById('fixtures');
+    const roundTitle = root.getElementById('round-title');
+
+    // Update round title
+    roundTitle.textContent = `Round ${round}`;
 
     // Clear any existing content
     fixturesContainer.innerHTML = '';
