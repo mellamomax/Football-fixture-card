@@ -38,8 +38,19 @@ class FootballFixtureCard extends HTMLElement {
         .score {
           font-weight: normal;
         }
-        .score.bold {
+        .bold {
           font-weight: bold;
+        }
+        .spoiler {
+          background-color: #000;
+          color: #000;
+          cursor: pointer;
+          padding: 0 5px;
+          border-radius: 3px;
+        }
+        .spoiler.revealed {
+          color: inherit;
+          background-color: inherit;
         }
       </style>
       <div class="card">
@@ -108,24 +119,54 @@ class FootballFixtureCard extends HTMLElement {
 
         // Determine if the score needs to be bold
         if (homeScore !== null && awayScore !== null) {
-          if (homeScore > awayScore) {
+          if (fixture.home_team === 'Barcelona' || fixture.away_team === 'Barcelona') {
+            // Spoiler feature for Barcelona games
             scoreElement.innerHTML = `
-              <span class="bold">${homeScore}</span>
-              <span> : </span>
-              <span>${awayScore}</span>
+              <span class="spoiler">Click to reveal</span>
             `;
-          } else if (awayScore > homeScore) {
-            scoreElement.innerHTML = `
-              <span>${homeScore}</span>
-              <span> : </span>
-              <span class="bold">${awayScore}</span>
-            `;
+            scoreElement.addEventListener('click', function() {
+              this.classList.add('revealed');
+              if (homeScore > awayScore) {
+                this.innerHTML = `
+                  <span class="bold">${homeScore}</span>
+                  <span> : </span>
+                  <span>${awayScore}</span>
+                `;
+              } else if (awayScore > homeScore) {
+                this.innerHTML = `
+                  <span>${homeScore}</span>
+                  <span> : </span>
+                  <span class="bold">${awayScore}</span>
+                `;
+              } else {
+                this.innerHTML = `
+                  <span class="bold">${homeScore}</span>
+                  <span> : </span>
+                  <span class="bold">${awayScore}</span>
+                `;
+              }
+            });
           } else {
-            scoreElement.innerHTML = `
-              <span class="bold">${homeScore}</span>
-              <span> : </span>
-              <span class="bold">${awayScore}</span>
-            `;
+            // Regular score display for non-Barcelona games
+            if (homeScore > awayScore) {
+              scoreElement.innerHTML = `
+                <span class="bold">${homeScore}</span>
+                <span> : </span>
+                <span>${awayScore}</span>
+              `;
+            } else if (awayScore > homeScore) {
+              scoreElement.innerHTML = `
+                <span>${homeScore}</span>
+                <span> : </span>
+                <span class="bold">${awayScore}</span>
+              `;
+            } else {
+              scoreElement.innerHTML = `
+                <span class="bold">${homeScore}</span>
+                <span> : </span>
+                <span class="bold">${awayScore}</span>
+              `;
+            }
           }
         } else {
           scoreElement.innerHTML = `
