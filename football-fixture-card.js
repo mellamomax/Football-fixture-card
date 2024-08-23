@@ -82,9 +82,9 @@ class FootballFixtureCard extends HTMLElement {
   }
 
   set hass(hass) {
-    // Only set this.hass if it has actually changed to avoid recursive calls
-    if (!this.hass || this.hass !== hass) {
-      this.hass = hass;
+    // Only set this._hass if it has actually changed to avoid recursive calls
+    if (!this._hass || this._hass !== hass) {
+      this._hass = hass;
 
       // Add event listeners only once
       if (!this.listenersAdded) {
@@ -108,7 +108,7 @@ class FootballFixtureCard extends HTMLElement {
 
   displayFixtures(round) {
     const entityId = this.config.entity;
-    const state = this.hass.states[entityId];
+    const state = this._hass.states[entityId];
 
     if (!state) {
       return;
