@@ -37,13 +37,14 @@ class FootballFixtureCard extends HTMLElement {
         }
         .fixture {
           display: flex;
-          justify-content: space-between;
-          align-items: center;
+          flex-direction: column;
+          align-items: flex-start;
           margin-bottom: 10px;
         }
-        .teams {
+        .team {
           display: flex;
           align-items: center;
+          margin-bottom: 5px;
         }
         .team-logo {
           height: 30px;
@@ -52,6 +53,7 @@ class FootballFixtureCard extends HTMLElement {
         }
         .score {
           font-weight: normal;
+          margin-left: 40px; /* Align the scores with the team names */
         }
         .bold {
           font-weight: bold;
@@ -78,11 +80,10 @@ class FootballFixtureCard extends HTMLElement {
       </div>
     `;
 
-    this.currentRound = 1;  // Initialize the current round
+    this.currentRound = 1;  // Initialize the current round, will be overwritten by the actual current round from hass
   }
 
   set hass(hass) {
-    // Only set this._hass if it has actually changed to avoid recursive calls
     if (!this._hass || this._hass !== hass) {
       this._hass = hass;
 
@@ -92,7 +93,6 @@ class FootballFixtureCard extends HTMLElement {
       if (state && state.attributes.current_round) {
         this.currentRound = state.attributes.current_round;
       }
-
 
       // Add event listeners only once
       if (!this.listenersAdded) {
@@ -140,7 +140,11 @@ class FootballFixtureCard extends HTMLElement {
     // Group fixtures by date
     const groupedFixtures = sortedFixtures.reduce((acc, fixture) => {
       const fixtureDate = new Date(fixture.date);
-      const formattedDate = fixtureDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric' });
+      const formattedDate = fixtureDate.toLocaleDateString('sv-SE', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'long'
+      });
 
       if (!acc[formattedDate]) {
         acc[formattedDate] = [];
@@ -160,14 +164,18 @@ class FootballFixtureCard extends HTMLElement {
         const fixtureElement = document.createElement('div');
         fixtureElement.className = 'fixture';
 
-        const teamsElement = document.createElement('div');
-        teamsElement.className = 'teams';
-        teamsElement.innerHTML = `
+        const homeTeamElement = document.createElement('div');
+        homeTeamElement.className = 'team';
+        homeTeamElement.innerHTML = `
           <img class="team-logo" src="${fixture.home_team_logo}" alt="${fixture.home_team} logo">
           <span>${fixture.home_team}</span>
-          <span> vs </span>
-          <span>${fixture.away_team}</span>
+        `;
+
+        const awayTeamElement = document.createElement('div');
+        awayTeamElement.className = 'team';
+        awayTeamElement.innerHTML = `
           <img class="team-logo" src="${fixture.away_team_logo}" alt="${fixture.away_team} logo">
+          <span>${fixture.away_team}</span>
         `;
 
         const scoreElement = document.createElement('div');
@@ -185,57 +193,23 @@ class FootballFixtureCard extends HTMLElement {
             `;
             scoreElement.addEventListener('click', function() {
               this.classList.add('revealed');
-              if (homeScore > awayScore) {
-                this.innerHTML = `
-                  <span class="bold">${homeScore}</span>
-                  <span> : </span>
-                  <span>${awayScore}</span>
-                `;
-              } else if (awayScore > homeScore) {
-                this.innerHTML = `
-                  <span>${homeScore}</span>
-                  <span> : </span>
-                  <span class="bold">${awayScore}</span>
-                `;
-              } else {
-                this.innerHTML = `
-                  <span class="bold">${homeScore}</span>
-                  <span> : </span>
-                  <span class="bold">${awayScore}</span>
-                `;
-              }
+              this.innerHTML = `
+                <span>${homeScore}</span> - <span>${awayScore}</span>
+              `;
             });
           } else {
-            // Regular score display for non-Barcelona games
-            if (homeScore > awayScore) {
-              scoreElement.innerHTML = `
-                <span class="bold">${homeScore}</span>
-                <span> : </span>
-                <span>${awayScore}</span>
-              `;
-            } else if (awayScore > homeScore) {
-              scoreElement.innerHTML = `
-                <span>${homeScore}</span>
-                <span> : </span>
-                <span class="bold">${awayScore}</span>
-              `;
-            } else {
-              scoreElement.innerHTML = `
-                <span class="bold">${homeScore}</span>
-                <span> : </span>
-                <span class="bold">${awayScore}</span>
-              `;
-            }
+            scoreElement.innerHTML = `
+              <span>${homeScore}</span> - <span>${awayScore}</span>
+            `;
           }
         } else {
           scoreElement.innerHTML = `
-            <span>${homeScore ?? '-'}</span>
-            <span> : </span>
-            <span>${awayScore ?? '-'}</span>
+            <span>${homeScore ?? '-'}</span> - <span>${awayScore ?? '-'}</span>
           `;
         }
 
-        fixtureElement.appendChild(teamsElement);
+        fixtureElement.appendChild(homeTeamElement);
+        fixtureElement.appendChild(awayTeamElement);
         fixtureElement.appendChild(scoreElement);
         fixturesContainer.appendChild(fixtureElement);
       });
