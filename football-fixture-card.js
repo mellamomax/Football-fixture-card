@@ -38,13 +38,17 @@ class FootballFixtureCard extends HTMLElement {
         .fixture {
           display: flex;
           flex-direction: column;
-          align-items: flex-start;
           margin-bottom: 10px;
+        }
+        .team-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 5px;
         }
         .team {
           display: flex;
           align-items: center;
-          margin-bottom: 5px;
         }
         .team-logo {
           height: 30px;
@@ -53,7 +57,6 @@ class FootballFixtureCard extends HTMLElement {
         }
         .score {
           font-weight: normal;
-          margin-left: 40px; /* Align the scores with the team names */
         }
         .bold {
           font-weight: bold;
@@ -165,52 +168,45 @@ class FootballFixtureCard extends HTMLElement {
         fixtureElement.className = 'fixture';
 
         const homeTeamElement = document.createElement('div');
-        homeTeamElement.className = 'team';
+        homeTeamElement.className = 'team-container';
         homeTeamElement.innerHTML = `
-          <img class="team-logo" src="${fixture.home_team_logo}" alt="${fixture.home_team} logo">
-          <span>${fixture.home_team}</span>
+          <div class="team">
+            <img class="team-logo" src="${fixture.home_team_logo}" alt="${fixture.home_team} logo">
+            <span>${fixture.home_team}</span>
+          </div>
+          <div class="score">${fixture.score.home ?? '-'}</div>
         `;
 
         const awayTeamElement = document.createElement('div');
-        awayTeamElement.className = 'team';
+        awayTeamElement.className = 'team-container';
         awayTeamElement.innerHTML = `
-          <img class="team-logo" src="${fixture.away_team_logo}" alt="${fixture.away_team} logo">
-          <span>${fixture.away_team}</span>
+          <div class="team">
+            <img class="team-logo" src="${fixture.away_team_logo}" alt="${fixture.away_team} logo">
+            <span>${fixture.away_team}</span>
+          </div>
+          <div class="score">${fixture.score.away ?? '-'}</div>
         `;
 
-        const scoreElement = document.createElement('div');
-        scoreElement.className = 'score';
-
-        const homeScore = fixture.score.home;
-        const awayScore = fixture.score.away;
-
-        // Determine if the score needs to be bold
-        if (homeScore !== null && awayScore !== null) {
-          if (fixture.home_team === 'Barcelona' || fixture.away_team === 'Barcelona') {
-            // Spoiler feature for Barcelona games
-            scoreElement.innerHTML = `
-              <span class="spoiler">Click to reveal</span>
-            `;
-            scoreElement.addEventListener('click', function() {
-              this.classList.add('revealed');
-              this.innerHTML = `
-                <span>${homeScore}</span> - <span>${awayScore}</span>
-              `;
-            });
-          } else {
-            scoreElement.innerHTML = `
-              <span>${homeScore}</span> - <span>${awayScore}</span>
-            `;
-          }
-        } else {
-          scoreElement.innerHTML = `
-            <span>${homeScore ?? '-'}</span> - <span>${awayScore ?? '-'}</span>
+        // Handle spoiler for Barcelona games
+        if (fixture.home_team === 'Barcelona' || fixture.away_team === 'Barcelona') {
+          homeTeamElement.querySelector('.score').innerHTML = `
+            <span class="spoiler">Click to reveal</span>
           `;
+          awayTeamElement.querySelector('.score').innerHTML = `
+            <span class="spoiler">Click to reveal</span>
+          `;
+          homeTeamElement.querySelector('.score').addEventListener('click', function() {
+            this.classList.add('revealed');
+            this.innerHTML = `${fixture.score.home ?? '-'}`;
+          });
+          awayTeamElement.querySelector('.score').addEventListener('click', function() {
+            this.classList.add('revealed');
+            this.innerHTML = `${fixture.score.away ?? '-'}`;
+          });
         }
 
         fixtureElement.appendChild(homeTeamElement);
         fixtureElement.appendChild(awayTeamElement);
-        fixtureElement.appendChild(scoreElement);
         fixturesContainer.appendChild(fixtureElement);
       });
     });
