@@ -86,6 +86,14 @@ class FootballFixtureCard extends HTMLElement {
     if (!this._hass || this._hass !== hass) {
       this._hass = hass;
 
+      // Get the current round from the sensor's state attributes
+      const entityId = this.config.entity;
+      const state = this._hass.states[entityId];
+      if (state && state.attributes.current_round) {
+        this.currentRound = state.attributes.current_round;
+      }
+
+
       // Add event listeners only once
       if (!this.listenersAdded) {
         this.shadowRoot.getElementById('prev-round').addEventListener('click', () => this.changeRound(-1));
