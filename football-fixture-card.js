@@ -31,9 +31,9 @@ class FootballFixtureCard extends HTMLElement {
           font-size: 1.2em;
         }
         .date-group {
-          #margin-top: 16px;
+          margin-top: 16px;
           font-weight: bold;
-          #font-size: 1.2em;
+          font-size: 1.2em;
         }
         .fixture {
           display: flex;
@@ -178,7 +178,7 @@ class FootballFixtureCard extends HTMLElement {
             <span>${fixture.home_team}</span>
           </div>
           <div class="score">
-            <span class="spoiler">Click to reveal</span>
+            ${isBarcelonaFixture ? '<span class="spoiler">Click to reveal</span>' : fixture.score.home ?? '-'}
           </div>
         `;
 
@@ -190,7 +190,7 @@ class FootballFixtureCard extends HTMLElement {
             <span>${fixture.away_team}</span>
           </div>
           <div class="score">
-            <span class="spoiler">Click to reveal</span>
+            ${isBarcelonaFixture ? '<span class="spoiler">Click to reveal</span>' : fixture.score.away ?? '-'}
           </div>
         `;
 
@@ -209,33 +209,22 @@ class FootballFixtureCard extends HTMLElement {
             this.classList.add('revealed');
             this.textContent = `${fixture.score.away ?? '-'}`;
           });
+
+          // Make the Barcelona fixture clickable to show more info
+          const clickHandler = () => {
+            const event = new Event('hass-more-info', { bubbles: true, cancelable: false, composed: true });
+            event.detail = { entityId: entityId };
+            this.dispatchEvent(event);
+          };
+
+          fixtureElement.style.cursor = 'pointer';
+          fixtureElement.addEventListener('click', clickHandler);
         }
 
-        // Wrap the entire fixture element in a clickable container
-        const clickWrapper = document.createElement('div');
-        clickWrapper.style.position = 'relative'; // Make it positioned to use z-index
-        clickWrapper.style.cursor = 'pointer';
-
-        const clickHandler = () => {
-          const event = new Event('hass-more-info', { bubbles: true, cancelable: false, composed: true });
-          event.detail = { entityId: this.config.entity }; // Replace this.config.entity with the appropriate entity ID
-          this.dispatchEvent(event);
-        };
-
-        clickWrapper.addEventListener('click', clickHandler);
-
-        // Append fixture elements to the wrapper
+        // Append fixture elements to the fixture element
         fixtureElement.appendChild(homeTeamElement);
         fixtureElement.appendChild(awayTeamElement);
-        clickWrapper.appendChild(fixtureElement);
-
-        // Apply z-index to keep spoiler clickable
-        homeTeamElement.querySelector('.spoiler').style.position = 'relative';
-        homeTeamElement.querySelector('.spoiler').style.zIndex = '10';
-        awayTeamElement.querySelector('.spoiler').style.position = 'relative';
-        awayTeamElement.querySelector('.spoiler').style.zIndex = '10';
-
-        fixturesContainer.appendChild(clickWrapper);
+        fixturesContainer.appendChild(fixtureElement);
       });
     });
   }
