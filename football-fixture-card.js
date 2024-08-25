@@ -167,6 +167,9 @@ class FootballFixtureCard extends HTMLElement {
         const fixtureElement = document.createElement('div');
         fixtureElement.className = 'fixture';
 
+        // Check if the fixture is related to Barcelona
+        const isBarcelonaFixture = fixture.home_team === 'Barcelona' || fixture.away_team === 'Barcelona';
+
         const homeTeamElement = document.createElement('div');
         homeTeamElement.className = 'team-container';
         homeTeamElement.innerHTML = `
@@ -174,7 +177,9 @@ class FootballFixtureCard extends HTMLElement {
             <img class="team-logo" src="${fixture.home_team_logo}" alt="${fixture.home_team} logo">
             <span>${fixture.home_team}</span>
           </div>
-          <div class="score">${fixture.score.home ?? '-'}</div>
+          <div class="score">
+            <span class="spoiler">Click to reveal</span>
+          </div>
         `;
 
         const awayTeamElement = document.createElement('div');
@@ -184,30 +189,53 @@ class FootballFixtureCard extends HTMLElement {
             <img class="team-logo" src="${fixture.away_team_logo}" alt="${fixture.away_team} logo">
             <span>${fixture.away_team}</span>
           </div>
-          <div class="score">${fixture.score.away ?? '-'}</div>
+          <div class="score">
+            <span class="spoiler">Click to reveal</span>
+          </div>
         `;
 
         // Handle spoiler for Barcelona games
-        if (fixture.home_team === 'Barcelona' || fixture.away_team === 'Barcelona') {
-          homeTeamElement.querySelector('.score').innerHTML = `
-            <span class="spoiler">Click to reveal</span>
-          `;
-          awayTeamElement.querySelector('.score').innerHTML = `
-            <span class="spoiler">Click to reveal</span>
-          `;
-          homeTeamElement.querySelector('.score').addEventListener('click', function() {
+        if (isBarcelonaFixture) {
+          const homeScore = homeTeamElement.querySelector('.score');
+          const awayScore = awayTeamElement.querySelector('.score');
+
+          homeScore.addEventListener('click', function(event) {
+            event.stopPropagation();
             this.classList.add('revealed');
-            this.innerHTML = `${fixture.score.home ?? '-'}`;
+            this.textContent = `${fixture.score.home ?? '-'}`;
           });
-          awayTeamElement.querySelector('.score').addEventListener('click', function() {
+          awayScore.addEventListener('click', function(event) {
+            event.stopPropagation();
             this.classList.add('revealed');
-            this.innerHTML = `${fixture.score.away ?? '-'}`;
+            this.textContent = `${fixture.score.away ?? '-'}`;
           });
         }
 
+        // Wrap the entire fixture element in a clickable container
+        const clickWrapper = document.createElement('div');
+        clickWrapper.style.position = 'relative'; // Make it positioned to use z-index
+        clickWrapper.style.cursor = 'pointer';
+
+        const clickHandler = () => {
+          const event = new Event('hass-more-info', { bubbles: true, cancelable: false, composed: true });
+          event.detail = { entityId: this.config.entity }; // Replace this.config.entity with the appropriate entity ID
+          this.dispatchEvent(event);
+        };
+
+        clickWrapper.addEventListener('click', clickHandler);
+
+        // Append fixture elements to the wrapper
         fixtureElement.appendChild(homeTeamElement);
         fixtureElement.appendChild(awayTeamElement);
-        fixturesContainer.appendChild(fixtureElement);
+        clickWrapper.appendChild(fixtureElement);
+
+        // Apply z-index to keep spoiler clickable
+        homeTeamElement.querySelector('.spoiler').style.position = 'relative';
+        homeTeamElement.querySelector('.spoiler').style.zIndex = '10';
+        awayTeamElement.querySelector('.spoiler').style.position = 'relative';
+        awayTeamElement.querySelector('.spoiler').style.zIndex = '10';
+
+        fixturesContainer.appendChild(clickWrapper);
       });
     });
   }
