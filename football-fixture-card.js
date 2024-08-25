@@ -94,7 +94,13 @@ class FootballFixtureCard extends HTMLElement {
       const entityId = this.config.entity;
       const state = this._hass.states[entityId];
       if (state && state.attributes.current_round) {
-        this.currentRound = state.attributes.current_round;
+          const currentRoundFromState = state.attributes.current_round;
+
+          // Only update the round if it matches the current round in the state
+          if (this.currentRound !== currentRoundFromState) {
+              this.currentRound = currentRoundFromState;
+              this.displayFixtures(this.currentRound);
+          }
       }
 
       // Add event listeners only once
