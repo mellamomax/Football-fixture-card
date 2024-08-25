@@ -31,9 +31,9 @@ class FootballFixtureCard extends HTMLElement {
           font-size: 1.2em;
         }
         .date-group {
-          margin-top: 16px;
+          #margin-top: 16px;
           font-weight: bold;
-          font-size: 1.2em;
+          #font-size: 1.2em;
         }
         .fixture {
           display: flex;
@@ -44,15 +44,15 @@ class FootballFixtureCard extends HTMLElement {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 5px;
+          margin-bottom: 2px;
         }
         .team {
           display: flex;
           align-items: center;
         }
         .team-logo {
-          height: 30px;
-          width: 30px;
+          height: 20px;
+          width: 20px;
           margin-right: 10px;
         }
         .score {
