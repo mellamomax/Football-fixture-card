@@ -91,17 +91,19 @@ class FootballFixtureCard extends HTMLElement {
       this._hass = hass;
 
       // Get the current round from the sensor's state attributes
-      const entityId = this.config.entity;
-      const state = this._hass.states[entityId];
-      if (state && state.attributes.current_round) {
-          const currentRoundFromState = state.attributes.current_round;
+	  const entityId = this.config.entity;
+	  const state = this._hass.states[entityId];
+	  if (state && state.attributes.current_round) {
+		  const currentRoundFromState = state.attributes.current_round;
+ 
+		  // If the current round has changed, update and display fixtures
+		  if (this.currentRound !== currentRoundFromState) {
+			  this.currentRound = currentRoundFromState;
+		  }
 
-          // Only update the round if it matches the current round in the state
-          if (this.currentRound !== currentRoundFromState) {
-              this.currentRound = currentRoundFromState;
-              this.displayFixtures(this.currentRound);
-          }
-      }
+		  // Always display fixtures for the current round
+		  this.displayFixtures(this.currentRound);
+	  }
 
       // Add event listeners only once
       if (!this.listenersAdded) {
