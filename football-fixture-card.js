@@ -40,6 +40,11 @@ class FootballFixtureCard extends HTMLElement {
           flex-direction: column;
           margin-bottom: 10px;
         }
+		.time-or-ft {
+			font-size: 0.9em;
+			color: var(--primary-text-color, #000);
+			margin-left: 10px;
+		}
         .team-container {
           display: flex;
           justify-content: space-between;
@@ -96,14 +101,13 @@ class FootballFixtureCard extends HTMLElement {
 	  if (state && state.attributes.current_round) {
 		  const currentRoundFromState = state.attributes.current_round;
  
-		  // If the current round has changed, update and display fixtures
-		  if (this.currentRound !== currentRoundFromState) {
-			  this.currentRound = currentRoundFromState;
-		  }
-
-		  // Always display fixtures for the current round
-		  this.displayFixtures(this.currentRound);
-	  }
+          // If this is the first time loading or if the user is at the current round,
+          // set the current round to the one from the state
+          if (!this.currentRoundSetByUser || this.currentRound === currentRoundFromState) {
+              this.currentRound = currentRoundFromState;
+              this.currentRoundSetByUser = false; // reset the user-set flag
+          }
+      }	
 
       // Add event listeners only once
       if (!this.listenersAdded) {
@@ -118,11 +122,29 @@ class FootballFixtureCard extends HTMLElement {
   }
 
   changeRound(direction) {
-    this.currentRound += direction;
-    if (this.currentRound < 1) {
-      this.currentRound = 1;  // Prevent navigating to a round less than 1
-    }
-    this.displayFixtures(this.currentRound);
+      const entityId = this.config.entity;
+      const state = this._hass.states[entityId];
+      if (!state) {
+          return;
+      }
+
+      this.currentRound += direction;
+
+      // If the current round is less than 1, reset it to 1 (or min round number)
+      if (this.currentRound < 1) {
+          this.currentRound = 1;
+      }
+
+      // Ensure that the round does not go above the maximum available rounds (optional)
+      if (state.attributes.max_round && this.currentRound > state.attributes.max_round) {
+          this.currentRound = state.attributes.max_round;
+      }
+
+      // Mark that the user has manually set the round
+      this.currentRoundSetByUser = true;
+
+      // Display the fixtures for the new round
+      this.displayFixtures(this.currentRound);
   }
 
   displayFixtures(round) {
@@ -175,32 +197,51 @@ class FootballFixtureCard extends HTMLElement {
         const fixtureElement = document.createElement('div');
         fixtureElement.className = 'fixture';
 
+		// Determine if the fixture has finished
+		const fixtureDate = new Date(fixture.date);
+		const now = new Date();
+		const timeOrFT = fixtureDate < now ? 'FT' : fixtureDate.toLocaleTimeString('sv-SE', {
+			hour: '2-digit',
+			minute: '2-digit',
+		});
+
         // Check if the fixture is related to Barcelona
         const isBarcelonaFixture = fixture.home_team === 'Barcelona' || fixture.away_team === 'Barcelona';
 
-        const homeTeamElement = document.createElement('div');
-        homeTeamElement.className = 'team-container';
-        homeTeamElement.innerHTML = `
-          <div class="team">
-            <img class="team-logo" src="${fixture.home_team_logo}" alt="${fixture.home_team} logo">
-            <span>${fixture.home_team}</span>
-          </div>
-          <div class="score">
-            ${isBarcelonaFixture ? '<span class="spoiler">Click to reveal</span>' : fixture.score.home ?? '-'}
-          </div>
-        `;
+		// Determine if there is a winning team and style the score accordingly
+		const homeScoreBold = fixture.score.home > fixture.score.away ? 'bold' : 'normal';
+		const awayScoreBold = fixture.score.away > fixture.score.home ? 'bold' : 'normal';
 
-        const awayTeamElement = document.createElement('div');
-        awayTeamElement.className = 'team-container';
-        awayTeamElement.innerHTML = `
-          <div class="team">
-            <img class="team-logo" src="${fixture.away_team_logo}" alt="${fixture.away_team} logo">
-            <span>${fixture.away_team}</span>
-          </div>
-          <div class="score">
-            ${isBarcelonaFixture ? '<span class="spoiler">Click to reveal</span>' : fixture.score.away ?? '-'}
-          </div>
-        `;
+
+		const homeTeamElement = document.createElement('div');
+		homeTeamElement.className = 'team-container';
+		homeTeamElement.innerHTML = `
+			<div class="team">
+				<img class="team-logo" src="${fixture.home_team_logo}" alt="${fixture.home_team} logo">
+				<span class="${fixture.home_team === 'Barcelona' ? 'bold' : ''}">${fixture.home_team}</span>
+			</div>
+			<div class="score" style="font-weight: ${homeScoreBold};">
+				${isBarcelonaFixture ? '<span class="spoiler">Click to reveal</span>' : fixture.score.home ?? '-'}
+			</div>
+			<div class="time-or-ft">
+				${timeOrFT}
+			</div>
+		`;
+
+		const awayTeamElement = document.createElement('div');
+		awayTeamElement.className = 'team-container';
+		awayTeamElement.innerHTML = `
+			<div class="team">
+				<img class="team-logo" src="${fixture.away_team_logo}" alt="${fixture.away_team} logo">
+				<span class="${fixture.away_team === 'Barcelona' ? 'bold' : ''}">${fixture.away_team}</span>
+			</div>
+			<div class="score" style="font-weight: ${awayScoreBold};">
+				${isBarcelonaFixture ? '<span class="spoiler">Click to reveal</span>' : fixture.score.away ?? '-'}
+			</div>
+			<div class="time-or-ft">
+				${timeOrFT}
+			</div>
+		`;
 
         // Handle spoiler for Barcelona games
         if (isBarcelonaFixture) {
