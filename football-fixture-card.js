@@ -7,6 +7,8 @@ class FootballFixtureCard extends HTMLElement {
     // The configuration for your card
     this.config = config;
     const root = this.attachShadow({ mode: 'open' });
+	
+
     root.innerHTML = `
       <style>
         .card {
@@ -77,6 +79,24 @@ class FootballFixtureCard extends HTMLElement {
           color: inherit;
           background-color: inherit;
         }
+		.round-title {
+			font-weight: bold;
+			font-size: 1.2em;
+		}
+		.form-group {
+			margin: 16px 0;
+		}
+		.form-group label {
+			display: block;
+			margin-bottom: 4px;
+			font-weight: bold;
+		}
+		.form-group input {
+			width: 100%;
+			padding: 8px;
+			box-sizing: border-box;
+		}
+		
       </style>
       <div class="card">
         <div class="header">
@@ -85,8 +105,27 @@ class FootballFixtureCard extends HTMLElement {
           <div id="next-round" class="arrow">&rarr;</div>
         </div>
         <div id="fixtures"></div>
+		<div class="form-group">
+			<label for="team-id">Team ID</label>
+			<input id="team-id" type="number" placeholder="Enter Team ID" value="${this.config.teamId || ''}">
+		</div>
+		<div class="form-group">
+			<label for="league">League</label>
+			<input id="league" type="number" placeholder="Enter League ID" value="${this.config.league || ''}">
+		</div>
       </div>
     `;
+	
+	// Add event listeners to save the settings when changed
+    root.getElementById('team-id').addEventListener('change', (e) => {
+        this.config.teamId = Number(e.target.value);
+        this.saveConfig();
+    });
+
+    root.getElementById('league').addEventListener('change', (e) => {
+        this.config.league = Number(e.target.value);
+        this.saveConfig();
+    });
 
     this.currentRound = 1;  // Initialize the current round, will be overwritten by the actual current round from hass
   }
@@ -277,6 +316,19 @@ class FootballFixtureCard extends HTMLElement {
       });
     });
   }
+  
+  saveConfig() {
+	const event = new Event('config-changed', {
+	  bubbles: true,
+	  composed: true,
+	});
+	event.detail = { config: this.config };
+	this.dispatchEvent(event);
+  }
+  
+  
+  
+  
 
   getCardSize() {
     return 3; // Size of your card, affects the height in the UI
@@ -299,3 +351,49 @@ window.customCards = window.customCards || [];
 
 // Add your card to the customCards array
 window.customCards.push(FootballFixtureCardDescriptor);
+
+
+class FootballFixtureCardEditor extends HTMLElement {
+    setConfig(config) {
+        this.config = config;
+        this.render();
+    }
+
+    render() {
+        if (!this.config) {
+            return;
+        }
+
+        this.innerHTML = `
+            <div class="form-group">
+                <label for="team-id">Team ID</label>
+                <input id="team-id" type="number" value="${this.config.teamId || ''}">
+            </div>
+            <div class="form-group">
+                <label for="league">League</label>
+                <input id="league" type="number" value="${this.config.league || ''}">
+            </div>
+        `;
+
+        this.querySelector('#team-id').addEventListener('input', (e) => {
+            this.config.teamId = Number(e.target.value);
+            this.saveConfig();
+        });
+
+        this.querySelector('#league').addEventListener('input', (e) => {
+            this.config.league = Number(e.target.value);
+            this.saveConfig();
+        });
+    }
+
+    saveConfig() {
+        const event = new Event('config-changed', {
+            bubbles: true,
+            composed: true,
+        });
+        event.detail = { config: this.config };
+        this.dispatchEvent(event);
+    }
+}
+
+customElements.define('football-fixture-card-editor', FootballFixtureCardEditor);
