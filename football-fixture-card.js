@@ -307,7 +307,8 @@ const FootballFixtureCardDescriptor = {
     name: 'Football Fixture Card', // Friendly name for the card picker
     description: 'A custom card to show football fixtures', // Short description
     preview: false, // Optional: Set to true to show a preview in the picker
-    documentationURL: 'https://justpaste.it/38sr8' // Optional: Link to your documentation (replace with your actual documentation link if available)
+    documentationURL: 'https://justpaste.it/38sr8', // Optional: Link to your documentation (replace with your actual documentation link if available)
+	editor: 'football-fixture-card-editor'  // Add this line
 };
 
 // Ensure window.customCards is initialized
