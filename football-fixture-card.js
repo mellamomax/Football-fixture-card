@@ -335,9 +335,7 @@ window.customCards = window.customCards || [];
 window.customCards.push(FootballFixtureCardDescriptor);
 
 
-class FootballFixtureCardEditor extends HTMLElement {
-	
-	
+class FootballFixtureCardEditor extends HTMLElement {	
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
@@ -346,7 +344,6 @@ class FootballFixtureCardEditor extends HTMLElement {
     setConfig(config) {
         this.config = config;
         this.render();
-        this.populateEntities(); // Populate entities when the config is set
     }
 
     render() {
@@ -452,6 +449,10 @@ class FootballFixtureCardEditor extends HTMLElement {
         }, true);
     }
 
+        // Populate entities after rendering is complete
+        this.populateEntities();
+    }
+
     populateEntities() {
         if (!this._hass) {
             return;
@@ -493,11 +494,6 @@ class FootballFixtureCardEditor extends HTMLElement {
         this.entityList.style.display = 'none';
     }
 
-
-
-
-
-
     _saveConfig() {
         const event = new CustomEvent('config-changed', {
             detail: { config: this.config },
@@ -509,7 +505,9 @@ class FootballFixtureCardEditor extends HTMLElement {
 
     set hass(hass) {
         this._hass = hass;
-		this.populateEntities(); // Populate entities when hass is set
+        if (this.shadowRoot) {
+            this.populateEntities(); // Populate entities when hass is set
+        }
     }
 }
 
