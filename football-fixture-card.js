@@ -290,9 +290,6 @@ class FootballFixtureCard extends HTMLElement {
 	this.dispatchEvent(event);
   }
   
-  
-  
-  
 
   getCardSize() {
     return 3; // Size of your card, affects the height in the UI
@@ -331,3 +328,183 @@ window.customCards = window.customCards || [];
 // Add your card to the customCards array
 window.customCards.push(FootballFixtureCardDescriptor);
 
+
+
+
+class FootballFixtureCardEditor extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
+
+    setConfig(config) {
+        this.config = config;
+        this.render();
+        this.populateEntities(); // Populate entities when the config is set
+    }
+
+    render() {
+        if (!this.config) {
+            return;
+        }
+
+        this.shadowRoot.innerHTML = `
+            <style>
+                .form-group {
+                    margin-bottom: 16px;
+                }
+                .form-group label {
+                    display: block;
+                    font-size: 14px;
+                    margin-bottom: 4px;
+                    color: var(--primary-text-color);
+                }
+                .form-group input,
+                .form-group select {
+                    width: 100%;
+                    padding: 8px;
+                    font-size: 14px;
+                    border: 1px solid var(--primary-text-color);
+                    border-radius: 4px;
+                    box-sizing: border-box;
+                }
+                .dropdown {
+                    position: relative;
+                    border: none;
+                }
+                .dropdown label {
+                    display: block;
+                    color: var(--secondary-text-color);
+                    font-size: 14px;
+                    margin-bottom: 4px;
+                }
+                .dropdown-input-wrapper:hover {
+                    background-color: #ececec;
+                }
+                .dropdown-list {
+                    position: absolute;
+                    z-index: 3;
+                    list-style: none;
+                    margin: 0;
+                    padding: 0;
+                    background: white;
+                    border: 1px solid #818181;
+                    border-radius: 4px;
+                    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+                    width: 100%;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    display: none; /* Hidden by default */
+                }
+                .dropdown-list li {
+                    padding: 8px;
+                    cursor: pointer;
+                }
+                .dropdown-list li:hover {
+                    background-color: #f0f0f0;
+                }
+            </style>
+            <div class="form-group dropdown">
+                <label for="entity">Entity*</label>
+                <div class="dropdown-input-wrapper">
+                    <input type="text" id="entity-input" placeholder="Select an option">
+                </div>
+                <ul class="dropdown-list" id="entity-list"></ul>
+            </div>
+            <div class="form-group">
+                <label for="team-id">Team ID</label>
+                <input id="team-id" type="number" value="${this.config.teamId || ''}">
+            </div>
+            <div class="form-group">
+                <label for="league">League</label>
+                <input id="league" type="number" value="${this.config.league || ''}">
+            </div>
+        `;
+
+        this.entityInput = this.shadowRoot.querySelector('#entity-input');
+        this.entityList = this.shadowRoot.querySelector('#entity-list');
+
+        this.entityInput.addEventListener('click', () => {
+            this.entityList.style.display = this.entityList.style.display === 'block' ? 'none' : 'block';
+        });
+
+        this.shadowRoot.querySelector('#team-id').addEventListener('change', (e) => {
+            this.config.teamId = Number(e.target.value);
+            this._saveConfig();
+        });
+
+        this.shadowRoot.querySelector('#league').addEventListener('change', (e) => {
+            this.config.league = Number(e.target.value);
+            this._saveConfig();
+        });
+
+        // Handle outside click to close the dropdowns
+        document.addEventListener('click', (event) => {
+            if (!this.shadowRoot.contains(event.target)) {
+                this.entityList.style.display = 'none'; // Close entity dropdown list
+            }
+        }, true);
+    }
+
+	populateEntities() {
+		if (!this._hass) {
+			console.warn("Hass is not defined.");
+			return;
+		}
+
+		try {
+			const entities = Object.keys(this._hass.states)
+				.filter(entityId => entityId.startsWith('sensor.') || entityId.startsWith('input_number.') || entityId.startsWith('automation.'))
+				.map(entityId => ({
+					entityId,
+					friendlyName: this._hass.states[entityId].attributes.friendly_name || entityId
+				}))
+				.sort((a, b) => a.friendlyName.localeCompare(b.friendlyName));
+
+			this.entityList.innerHTML = '';
+
+			entities.forEach(({ entityId, friendlyName }) => {
+				const listItem = document.createElement('li');
+				listItem.textContent = friendlyName;
+				listItem.addEventListener('click', () => {
+					this.setEntity(entityId);
+				});
+				this.entityList.appendChild(listItem);
+			});
+
+			// Set initial value if one is already configured
+			if (this.config.entity) {
+				const selectedEntity = entities.find(entity => entity.entityId === this.config.entity);
+				if (selectedEntity) {
+					this.entityInput.value = selectedEntity.friendlyName;
+				}
+			}
+		} catch (error) {
+			console.error("Error populating entities:", error);
+		}
+	}
+
+    setEntity(entityId) {
+        const friendlyName = this._hass.states[entityId].attributes.friendly_name || entityId;
+        this.entityInput.value = friendlyName;
+        this.config.entity = entityId;
+        this._saveConfig();
+        this.entityList.style.display = 'none';
+    }
+
+    _saveConfig() {
+        const event = new CustomEvent('config-changed', {
+            detail: { config: this.config },
+            bubbles: true,
+            composed: true
+        });
+        this.dispatchEvent(event);
+    }
+
+    set hass(hass) {
+        this._hass = hass;
+        this.populateEntities(); // Populate entities when hass is set
+    }
+}
+
+customElements.define('football-fixture-card-editor', FootballFixtureCardEditor);
