@@ -297,7 +297,24 @@ class FootballFixtureCard extends HTMLElement {
   getCardSize() {
     return 3; // Size of your card, affects the height in the UI
   }
+  
+  static getConfigElement() {
+      return document.createElement('football-fixture-card-editor');
+  }
+
+  static getStubConfig() {
+      return {
+          entity: '', // Default entity
+          teamId: '', // Default team ID
+          league: '', // Default league ID
+      };
+  }
+  
+  
+  
 }
+
+
 
 customElements.define('football-fixture-card', FootballFixtureCard);
 
@@ -308,7 +325,7 @@ const FootballFixtureCardDescriptor = {
     description: 'A custom card to show football fixtures', // Short description
     preview: false, // Optional: Set to true to show a preview in the picker
     documentationURL: 'https://justpaste.it/38sr8', // Optional: Link to your documentation (replace with your actual documentation link if available)
-	editor: 'football-fixture-card-editor'  // Add this line
+	editor: 'football-fixture-card-editor'
 };
 
 // Ensure window.customCards is initialized
@@ -319,6 +336,13 @@ window.customCards.push(FootballFixtureCardDescriptor);
 
 
 class FootballFixtureCardEditor extends HTMLElement {
+	
+	
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }	
+	
     setConfig(config) {
         this.config = config;
         this.render();
@@ -329,7 +353,30 @@ class FootballFixtureCardEditor extends HTMLElement {
             return;
         }
 
-        this.innerHTML = `
+        this.shadowRoot.innerHTML = `
+			<style>
+                .form-group {
+                    margin-bottom: 16px;
+                }
+                .form-group label {
+                    display: block;
+                    font-size: 14px;
+                    margin-bottom: 4px;
+                    color: var(--primary-text-color);
+                }
+                .form-group input {
+                    width: 100%;
+                    padding: 8px;
+                    font-size: 14px;
+                    border: 1px solid var(--primary-text-color);
+                    border-radius: 4px;
+                    box-sizing: border-box;
+                }
+            </style>
+            <div class="form-group">
+                <label for="entity">Entity</label>
+                <input id="entity" type="text" value="${this.config.entity || ''}">
+            </div>
             <div class="form-group">
                 <label for="team-id">Team ID</label>
                 <input id="team-id" type="number" value="${this.config.teamId || ''}">
@@ -340,24 +387,33 @@ class FootballFixtureCardEditor extends HTMLElement {
             </div>
         `;
 
-        this.querySelector('#team-id').addEventListener('input', (e) => {
-            this.config.teamId = Number(e.target.value);
-            this.saveConfig();
+        this.shadowRoot.querySelector('#entity').addEventListener('change', (e) => {
+            this.config.entity = e.target.value;
+            this._saveConfig();
         });
 
-        this.querySelector('#league').addEventListener('input', (e) => {
+        this.shadowRoot.querySelector('#team-id').addEventListener('change', (e) => {
+            this.config.teamId = Number(e.target.value);
+            this._saveConfig();
+        });
+
+        this.shadowRoot.querySelector('#league').addEventListener('change', (e) => {
             this.config.league = Number(e.target.value);
-            this.saveConfig();
+            this._saveConfig();
         });
     }
 
-    saveConfig() {
+    _saveConfig() {
         const event = new Event('config-changed', {
             bubbles: true,
             composed: true,
         });
         event.detail = { config: this.config };
         this.dispatchEvent(event);
+    }
+
+    set hass(hass) {
+        this._hass = hass;
     }
 }
 
