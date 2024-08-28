@@ -329,8 +329,6 @@ window.customCards = window.customCards || [];
 window.customCards.push(FootballFixtureCardDescriptor);
 
 
-
-
 class FootballFixtureCardEditor extends HTMLElement {
     constructor() {
         super();
@@ -378,6 +376,9 @@ class FootballFixtureCardEditor extends HTMLElement {
                     font-size: 14px;
                     margin-bottom: 4px;
                 }
+                .dropdown-input-wrapper {
+                    position: relative;
+                }
                 .dropdown-input-wrapper:hover {
                     background-color: #ececec;
                 }
@@ -424,6 +425,10 @@ class FootballFixtureCardEditor extends HTMLElement {
         this.entityInput = this.shadowRoot.querySelector('#entity-input');
         this.entityList = this.shadowRoot.querySelector('#entity-list');
 
+        this.entityInput.addEventListener('input', () => {
+            this.filterEntities(this.entityInput.value);
+        });
+
         this.entityInput.addEventListener('click', () => {
             this.entityList.style.display = this.entityList.style.display === 'block' ? 'none' : 'block';
         });
@@ -446,47 +451,66 @@ class FootballFixtureCardEditor extends HTMLElement {
         }, true);
     }
 
-	populateEntities() {
-		if (!this._hass) {
-			console.warn("Hass is not defined.");
-			return;
-		}
+    populateEntities() {
+        if (!this._hass) {
+            console.warn("Hass is not defined.");
+            return;
+        }
 
-		try {
-			const entities = Object.keys(this._hass.states)
-				.filter(entityId => entityId.startsWith('sensor.') || entityId.startsWith('input_number.') || entityId.startsWith('automation.'))
-				.map(entityId => ({
-					entityId,
-					friendlyName: this._hass.states[entityId].attributes.friendly_name || entityId
-				}))
-				.sort((a, b) => a.friendlyName.localeCompare(b.friendlyName));
+        try {
+            const entities = Object.keys(this._hass.states)
+                .filter(entityId => entityId.startsWith('sensor.') || entityId.startsWith('input_number.') || entityId.startsWith('automation.'))
+                .map(entityId => ({
+                    entityId,
+                    displayName: `${entityId} (${this._hass.states[entityId].attributes.friendly_name || 'Unnamed'})`
+                }))
+                .sort((a, b) => a.displayName.localeCompare(b.displayName));
 
-			this.entityList.innerHTML = '';
+            this.allEntities = entities; // Store all entities for filtering
+            this.filteredEntities = [...entities]; // Initialize filtered entities
 
-			entities.forEach(({ entityId, friendlyName }) => {
-				const listItem = document.createElement('li');
-				listItem.textContent = friendlyName;
-				listItem.addEventListener('click', () => {
-					this.setEntity(entityId);
-				});
-				this.entityList.appendChild(listItem);
-			});
+            this.updateEntityList();
 
-			// Set initial value if one is already configured
-			if (this.config.entity) {
-				const selectedEntity = entities.find(entity => entity.entityId === this.config.entity);
-				if (selectedEntity) {
-					this.entityInput.value = selectedEntity.friendlyName;
-				}
-			}
-		} catch (error) {
-			console.error("Error populating entities:", error);
-		}
-	}
+            // Set initial value if one is already configured
+            if (this.config.entity) {
+                const selectedEntity = entities.find(entity => entity.entityId === this.config.entity);
+                if (selectedEntity) {
+                    this.entityInput.value = selectedEntity.displayName;
+                }
+            }
+        } catch (error) {
+            console.error("Error populating entities:", error);
+        }
+    }
+
+    filterEntities(searchTerm) {
+        if (!searchTerm) {
+            this.filteredEntities = [...this.allEntities];
+        } else {
+            const lowerCaseSearchTerm = searchTerm.toLowerCase();
+            this.filteredEntities = this.allEntities.filter(entity =>
+                entity.entityId.toLowerCase().includes(lowerCaseSearchTerm) ||
+                entity.displayName.toLowerCase().includes(lowerCaseSearchTerm)
+            );
+        }
+        this.updateEntityList();
+    }
+
+    updateEntityList() {
+        this.entityList.innerHTML = '';
+        this.filteredEntities.forEach(({ entityId, displayName }) => {
+            const listItem = document.createElement('li');
+            listItem.textContent = displayName;
+            listItem.addEventListener('click', () => {
+                this.setEntity(entityId);
+            });
+            this.entityList.appendChild(listItem);
+        });
+    }
 
     setEntity(entityId) {
         const friendlyName = this._hass.states[entityId].attributes.friendly_name || entityId;
-        this.entityInput.value = friendlyName;
+        this.entityInput.value = `${entityId} (${friendlyName})`;
         this.config.entity = entityId;
         this._saveConfig();
         this.entityList.style.display = 'none';
