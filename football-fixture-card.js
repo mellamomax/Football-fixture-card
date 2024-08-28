@@ -346,6 +346,7 @@ class FootballFixtureCardEditor extends HTMLElement {
     setConfig(config) {
         this.config = config;
         this.render();
+        this.populateEntities(); // Populate entities when the config is set
     }
 
     render() {
@@ -508,6 +509,7 @@ class FootballFixtureCardEditor extends HTMLElement {
 
     set hass(hass) {
         this._hass = hass;
+		this.populateEntities(); // Populate entities when hass is set
     }
 }
 
