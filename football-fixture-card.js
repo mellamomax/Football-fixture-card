@@ -460,11 +460,7 @@ class FootballFixtureCardEditor extends HTMLElement {
         try {
             const entities = Object.keys(this._hass.states)
                 .filter(entityId => entityId.startsWith('sensor.') || entityId.startsWith('input_number.') || entityId.startsWith('automation.'))
-                .map(entityId => ({
-                    entityId,
-                    displayName: `${entityId} (${this._hass.states[entityId].attributes.friendly_name || 'Unnamed'})`
-                }))
-                .sort((a, b) => a.displayName.localeCompare(b.displayName));
+                .sort();
 
             this.allEntities = entities; // Store all entities for filtering
             this.filteredEntities = [...entities]; // Initialize filtered entities
@@ -473,9 +469,9 @@ class FootballFixtureCardEditor extends HTMLElement {
 
             // Set initial value if one is already configured
             if (this.config.entity) {
-                const selectedEntity = entities.find(entity => entity.entityId === this.config.entity);
+                const selectedEntity = entities.find(entityId => entityId === this.config.entity);
                 if (selectedEntity) {
-                    this.entityInput.value = selectedEntity.displayName;
+                    this.entityInput.value = selectedEntity;
                 }
             }
         } catch (error) {
@@ -489,8 +485,7 @@ class FootballFixtureCardEditor extends HTMLElement {
         } else {
             const lowerCaseSearchTerm = searchTerm.toLowerCase();
             this.filteredEntities = this.allEntities.filter(entity =>
-                entity.entityId.toLowerCase().includes(lowerCaseSearchTerm) ||
-                entity.displayName.toLowerCase().includes(lowerCaseSearchTerm)
+                entity.toLowerCase().includes(lowerCaseSearchTerm)
             );
         }
         this.updateEntityList();
@@ -498,9 +493,9 @@ class FootballFixtureCardEditor extends HTMLElement {
 
     updateEntityList() {
         this.entityList.innerHTML = '';
-        this.filteredEntities.forEach(({ entityId, displayName }) => {
+        this.filteredEntities.forEach(entityId => {
             const listItem = document.createElement('li');
-            listItem.textContent = displayName;
+            listItem.textContent = entityId;
             listItem.addEventListener('click', () => {
                 this.setEntity(entityId);
             });
@@ -509,8 +504,7 @@ class FootballFixtureCardEditor extends HTMLElement {
     }
 
     setEntity(entityId) {
-        const friendlyName = this._hass.states[entityId].attributes.friendly_name || entityId;
-        this.entityInput.value = `${entityId} (${friendlyName})`;
+        this.entityInput.value = entityId;
         this.config.entity = entityId;
         this._saveConfig();
         this.entityList.style.display = 'none';
