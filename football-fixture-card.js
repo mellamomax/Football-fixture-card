@@ -334,8 +334,9 @@ class FootballFixtureCardEditor extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open' });
         this._entityInputValue = '';  // To store the current input value temporarily
-        this._entitySelected = false; // To track whether the entity has been selected
+        this._entitySelected = false; // To track whether an entity has been selected
     }
+	
 
     setConfig(config) {
         this.config = { ...config };  // Clone the config object
@@ -345,9 +346,7 @@ class FootballFixtureCardEditor extends HTMLElement {
     }
 
     render() {
-        if (!this.config) {
-            return;
-        }
+        if (!this.config) return;
 
         this.shadowRoot.innerHTML = `
             <style>
@@ -369,53 +368,107 @@ class FootballFixtureCardEditor extends HTMLElement {
                     border-radius: 4px;
                     box-sizing: border-box;
                 }
-                .dropdown {
-                    position: relative;
-                    border: none;
-                }
-                .dropdown label {
-                    display: block;
-                    color: var(--secondary-text-color);
-                    font-size: 14px;
-                    margin-bottom: 4px;
-                }
-                .dropdown-input-wrapper {
-                    position: relative;
-                }
-                .dropdown-input-wrapper:hover {
-                    background-color: #ececec;
-                }
-                .dropdown-list {
-                    position: absolute;
-                    z-index: 3;
-                    list-style: none;
-                    margin: 0;
-                    padding: 0;
-                    background: white;
-                    border: 1px solid #818181;
-                    border-radius: 4px;
-                    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
-                    width: 100%;
-                    max-height: 200px;
-                    overflow-y: auto;
-                    display: none; /* Hidden by default */
-                }
-                .dropdown-list li {
-                    padding: 8px;
-                    cursor: pointer;
-                }
-                .dropdown-list li:hover {
-                    background-color: #f0f0f0;
-                }
+				.dropdown {
+					position: relative;
+					border: none;
+				}
+				.dropdown label {
+					display: block;
+					color: var(--secondary-text-color);
+					font-size: 11px;
+					top: 0px;
+					z-index: 3;
+					position: absolute;
+					margin-left: 10px;
+				}
+				.dropdown-input-wrapper:hover {
+					background-color: #ececec; /* A darker shade when hovering */
+				}
+				.dropdown-input-wrapper:focus-within {
+					outline: none !important; /* Removes the default focus outline */
+					border-left: none !important;
+					border-right: none !important;
+					border-top: none !important;
+					border-bottom: 2px solid #3f3f3f;
+				}
+				.dropdown-list {
+					position: absolute;
+					z-index: 3;
+					list-style: none;
+					margin: 0;
+					padding: 0px;
+					background: white;
+					border: 0px solid #818181;
+					border-radius: 0px;
+					box-sizing: border-box;
+					box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); /* Add box shadow here */
+					width: 96%;
+					max-height: 200px; /* Limit the height of the dropdown */
+					overflow-y: auto; /* Enable scrolling if too many items */
+					display: none; /* Hidden by default */
+				}
+				.dropdown-list li {
+					padding: 8px;
+					height: 60px;
+					cursor: pointer;
+					display: flex;
+					align-items: center;
+				}
+				.dropdown-list li:hover {
+					background-color: #f0f0f0;
+				}
+				.dropdown-list li span {
+					margin-left: 60px;
+					margin-top: 5px;
+				}
+				.dropdown-list li span:nth-child(2) {
+					color: #212121;
+					font-size: smaller;
+					position: absolute;
+				}
+				.dropdown-list li ha-icon {
+					position: relative;
+					left: 15px;
+					top: 18px;
+					color: #727272;
+					margin-right: 8px;
+				}
+				.dropdown-input-wrapper {
+					width: 93%;
+					padding: 8px;
+					height: 40px;
+					border-bottom: 1px solid #818181;
+					background-color: #f5f5f5;
+					cursor: text;
+					z-index: 1;
+					position: relative;
+					margin-bottom: 24px;
+					line-height: 40px;
+					display: flex;
+					align-items: center;
+					justify-content: space-between;
+				}
+				.dropdown-input-wrapper #dropdown-input {
+					width: 100%; /* Full width of the wrapper */
+					border: none; /* No border */
+					outline: none;
+					background-color: transparent; /* Transparent background */
+					color: var(--mdc-text-field-ink-color, rgba(0,0,0,.87)); /* Text color */
+					font-family: var(--mdc-typography-subtitle1-font-family, Roboto, sans-serif);
+					font-size: 1rem; /* Text size */
+					line-height: 40px; /* Align with the height of the wrapper */
+					text-indent: 7px;
+					top: 15px;
+					position: absolute;
+				}
             </style>
-            <div class="form-group dropdown">
-                <label for="entity">Entity*</label>
-                <div class="dropdown-input-wrapper">
-                    <input type="text" id="entity-input" placeholder="Type to search or select an option" 
-                        value="${this._entityInputValue}" autocomplete="off">  <!-- Disable browser autocomplete -->
-                </div>
-                <ul class="dropdown-list" id="entity-list"></ul>
-            </div>
+			<div class="dropdown">
+				<div class="dropdown-input-wrapper">
+					<label for="dropdown-input">Entity*</label>
+					<input type="text" id="dropdown-input" placeholder="Select an option" autocomplete="off">
+				</div>
+				<ul class="dropdown-list" id="entity-list"></ul>
+			</div>
             <div class="form-group">
                 <label for="team-id">Team ID</label>
                 <input id="team-id" type="number" value="${this.config.teamId || ''}">
@@ -426,58 +479,50 @@ class FootballFixtureCardEditor extends HTMLElement {
             </div>
         `;
 
-        this.entityInput = this.shadowRoot.querySelector('#entity-input');
+        this.dropdownInput = this.shadowRoot.querySelector('#dropdown-input');
         this.entityList = this.shadowRoot.querySelector('#entity-list');
+		
+		
+		// Event listeners
+        this.dropdownInput.addEventListener('input', (e) => this.handleInput(e));
+        this.dropdownInput.addEventListener('focus', () => this.entityList.style.display = 'block');
+        this.dropdownInput.addEventListener('blur', () => setTimeout(() => this.entityList.style.display = 'none', 100));
 
-        this.entityInput.addEventListener('input', (e) => {
-            this._entityInputValue = e.target.value;  // Update the temporary value
-            this.filterEntities(this._entityInputValue);
-            this.entityList.style.display = 'block'; // Show the dropdown when typing
-        });
 
-        this.entityInput.addEventListener('focus', () => {
-            this.entityList.style.display = 'block'; // Show the dropdown when input is focused
-        });
-
-        this.entityInput.addEventListener('blur', () => {
-            setTimeout(() => this.entityList.style.display = 'none', 100); // Hide the dropdown after a small delay to allow click
-        });
-
-        this.shadowRoot.querySelector('#team-id').addEventListener('change', (e) => {
-            this.config.teamId = Number(e.target.value);
-            this._saveConfig();
-        });
-
-        this.shadowRoot.querySelector('#league').addEventListener('change', (e) => {
-            this.config.league = Number(e.target.value);
-            this._saveConfig();
-        });
-
-        // Handle outside click to close the dropdowns
+        // Handle outside clicks to close the dropdowns
         document.addEventListener('click', (event) => {
             if (!this.shadowRoot.contains(event.target)) {
-                this.entityList.style.display = 'none'; // Close entity dropdown list
+                this.entityList.style.display = 'none';
             }
         }, true);
     }
 
-    populateEntities() {
-        if (!this._hass) {
-            console.warn("Hass is not defined.");
-            return;
-        }
-
-        try {
-            const entities = Object.keys(this._hass.states)
-                .filter(entityId => entityId.startsWith('sensor.') || entityId.startsWith('input_number.') || entityId.startsWith('automation.'))
-                .sort();
-
-            this.allEntities = entities; // Store all entities for filtering
-            this.filteredEntities = [...entities]; // Initialize filtered entities
-        } catch (error) {
-            console.error("Error populating entities:", error);
-        }
+    handleInput(e) {
+        this._entityInputValue = e.target.value;
+        this.filterEntities(this._entityInputValue);
+        this.entityList.style.display = 'block'; // Show the dropdown when typing
     }
+
+    populateEntities() {
+        if (!this._hass || !this.config || !this.entityList) return;
+
+        const entities = Object.keys(this._hass.states)
+            .filter(entityId => entityId.startsWith('sensor.') || entityId.startsWith('input_number.') || entityId.startsWith('automation.'))
+            .map(entityId => {
+                return {
+                    entityId: entityId,
+                    friendlyName: this._hass.states[entityId].attributes.friendly_name || entityId
+                };
+            });
+
+        entities.sort((a, b) => a.friendlyName.localeCompare(b.friendlyName));
+
+        this.allEntities = entities; // Store all entities for filtering
+        this.filteredEntities = [...entities]; // Initialize with all entities
+
+        this.updateEntityList();
+    }
+
 
     filterEntities(searchTerm) {
         if (!searchTerm) {
@@ -485,7 +530,8 @@ class FootballFixtureCardEditor extends HTMLElement {
         } else {
             const lowerCaseSearchTerm = searchTerm.toLowerCase();
             this.filteredEntities = this.allEntities.filter(entity =>
-                entity.toLowerCase().includes(lowerCaseSearchTerm)
+                entity.friendlyName.toLowerCase().includes(lowerCaseSearchTerm) ||
+                entity.entityId.toLowerCase().includes(lowerCaseSearchTerm)
             );
         }
         this.updateEntityList();
@@ -493,37 +539,35 @@ class FootballFixtureCardEditor extends HTMLElement {
 
     updateEntityList() {
         this.entityList.innerHTML = '';
-        this.filteredEntities.forEach(entityId => {
+        this.filteredEntities.forEach(({ entityId, friendlyName }) => {
             const listItem = document.createElement('li');
-            listItem.textContent = entityId;
-            listItem.addEventListener('click', () => {
-                this.setEntity(entityId);
-            });
+            listItem.innerHTML = `
+                <div style="display: flex; align-items: center;">
+                    <ha-icon icon="mdi:motion-sensor" style="margin-right: 8px;"></ha-icon>
+                    <span>${friendlyName}</span>
+                </div>
+                <span style="display: block; font-size: smaller; color: grey;">${entityId}</span>
+            `;
+            listItem.addEventListener('click', () => this.setEntity(entityId));
             this.entityList.appendChild(listItem);
         });
     }
 
     setEntity(entityId) {
-        this._entitySelected = true;  // Mark that an entity has been selected
-        this._entityInputValue = entityId;  // Update the temporary value
-        this.entityInput.value = entityId;
+        const friendlyName = this._hass.states[entityId].attributes.friendly_name || entityId;
+        this.dropdownInput.value = friendlyName;
         this.config.entity = entityId;
-        this._saveConfig();
+        this.dispatchEvent(new CustomEvent('config-changed', { 
+            bubbles: true, 
+            composed: true, 
+            detail: { config: this.config }
+        }));
         this.entityList.style.display = 'none';
-    }
-
-    _saveConfig() {
-        const event = new CustomEvent('config-changed', {
-            detail: { config: this.config },
-            bubbles: true,
-            composed: true
-        });
-        this.dispatchEvent(event);
     }
 
     set hass(hass) {
         this._hass = hass;
-        this.populateEntities(); // Populate entities when hass is set
+        this.populateEntities();
     }
 }
 
