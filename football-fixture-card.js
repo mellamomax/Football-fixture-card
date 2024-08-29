@@ -411,7 +411,8 @@ class FootballFixtureCardEditor extends HTMLElement {
             <div class="form-group dropdown">
                 <label for="entity">Entity*</label>
                 <div class="dropdown-input-wrapper">
-                    <input type="text" id="entity-input" placeholder="Type to search or select an option" value="${this._entityInputValue}">
+                    <input type="text" id="entity-input" placeholder="Type to search or select an option" 
+                        value="${this._entityInputValue}" autocomplete="off">  <!-- Disable browser autocomplete -->
                 </div>
                 <ul class="dropdown-list" id="entity-list"></ul>
             </div>
