@@ -411,8 +411,8 @@ class FootballFixtureCardEditor extends HTMLElement {
 					padding: 8px;
 					height: 60px;
 					cursor: pointer;
-					display: flex;
-					align-items: center;
+					#display: flex;
+					#align-items: center;
 				}
 				.dropdown-list li:hover {
 					background-color: #f0f0f0;
@@ -479,29 +479,31 @@ class FootballFixtureCardEditor extends HTMLElement {
             </div>
         `;
 
-        this.dropdownInput = this.shadowRoot.querySelector('#dropdown-input');
-        this.entityList = this.shadowRoot.querySelector('#entity-list');
-		
-		
+		this.dropdownInput = this.shadowRoot.querySelector('#dropdown-input');
+		this.entityList = this.shadowRoot.querySelector('#entity-list');
+
 		// Event listeners
-        this.dropdownInput.addEventListener('input', (e) => this.handleInput(e));
-        this.dropdownInput.addEventListener('focus', () => this.entityList.style.display = 'block');
-        this.dropdownInput.addEventListener('blur', () => setTimeout(() => this.entityList.style.display = 'none', 100));
+		this.dropdownInput.addEventListener('input', (e) => this.handleInput(e));
 
+		this.dropdownInput.addEventListener('click', () => {
+			// Toggle the display of the dropdown list
+			const isDisplayed = this.entityList.style.display === 'block';
+			this.entityList.style.display = isDisplayed ? 'none' : 'block';
+		});
 
-        // Handle outside clicks to close the dropdowns
-        document.addEventListener('click', (event) => {
-            if (!this.shadowRoot.contains(event.target)) {
-                this.entityList.style.display = 'none';
-            }
-        }, true);
+		// Handle outside clicks to close the dropdowns
+		document.addEventListener('click', (event) => {
+			if (!this.shadowRoot.contains(event.target)) {
+				this.entityList.style.display = 'none';
+			}
+		}, true);
     }
 
-    handleInput(e) {
-        this._entityInputValue = e.target.value;
-        this.filterEntities(this._entityInputValue);
-        this.entityList.style.display = 'block'; // Show the dropdown when typing
-    }
+	handleInput(e) {
+		this._entityInputValue = e.target.value;
+		this.filterEntities(this._entityInputValue);
+		this.entityList.style.display = 'block'; // Ensure the dropdown is shown when typing
+	}
 
     populateEntities() {
         if (!this._hass || !this.config || !this.entityList) return;
