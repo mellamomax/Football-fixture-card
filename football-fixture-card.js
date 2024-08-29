@@ -333,10 +333,12 @@ class FootballFixtureCardEditor extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
+        this._entityInputValue = '';  // To store the current input value temporarily
     }
 
     setConfig(config) {
-        this.config = { ...config };  // Make sure to clone the config to avoid direct mutations
+        this.config = { ...config };  // Clone the config object
+        this._entityInputValue = this.config.entity || '';  // Initialize with the config's entity value
         this.render();
         this.populateEntities(); // Populate entities when the config is set
     }
@@ -425,8 +427,9 @@ class FootballFixtureCardEditor extends HTMLElement {
         this.entityInput = this.shadowRoot.querySelector('#entity-input');
         this.entityList = this.shadowRoot.querySelector('#entity-list');
 
-        this.entityInput.addEventListener('input', () => {
-            this.filterEntities(this.entityInput.value);
+        this.entityInput.addEventListener('input', (e) => {
+            this._entityInputValue = e.target.value;  // Update the temporary value
+            this.filterEntities(this._entityInputValue);
         });
 
         this.entityInput.addEventListener('click', () => {
@@ -504,6 +507,7 @@ class FootballFixtureCardEditor extends HTMLElement {
     }
 
     setEntity(entityId) {
+        this._entityInputValue = entityId;  // Update the temporary value
         this.entityInput.value = entityId;
         this.config.entity = entityId;
         this._saveConfig();
