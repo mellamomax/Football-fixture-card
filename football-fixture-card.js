@@ -334,6 +334,7 @@ class FootballFixtureCardEditor extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open' });
         this._entityInputValue = '';  // To store the current input value temporarily
+        this._entitySelected = false; // To track whether the entity has been selected
     }
 
     setConfig(config) {
@@ -410,7 +411,7 @@ class FootballFixtureCardEditor extends HTMLElement {
             <div class="form-group dropdown">
                 <label for="entity">Entity*</label>
                 <div class="dropdown-input-wrapper">
-                    <input type="text" id="entity-input" placeholder="Select an option">
+                    <input type="text" id="entity-input" placeholder="Type to search or select an option" value="${this._entityInputValue}">
                 </div>
                 <ul class="dropdown-list" id="entity-list"></ul>
             </div>
@@ -430,10 +431,15 @@ class FootballFixtureCardEditor extends HTMLElement {
         this.entityInput.addEventListener('input', (e) => {
             this._entityInputValue = e.target.value;  // Update the temporary value
             this.filterEntities(this._entityInputValue);
+            this.entityList.style.display = 'block'; // Show the dropdown when typing
         });
 
-        this.entityInput.addEventListener('click', () => {
-            this.entityList.style.display = this.entityList.style.display === 'block' ? 'none' : 'block';
+        this.entityInput.addEventListener('focus', () => {
+            this.entityList.style.display = 'block'; // Show the dropdown when input is focused
+        });
+
+        this.entityInput.addEventListener('blur', () => {
+            setTimeout(() => this.entityList.style.display = 'none', 100); // Hide the dropdown after a small delay to allow click
         });
 
         this.shadowRoot.querySelector('#team-id').addEventListener('change', (e) => {
@@ -467,16 +473,6 @@ class FootballFixtureCardEditor extends HTMLElement {
 
             this.allEntities = entities; // Store all entities for filtering
             this.filteredEntities = [...entities]; // Initialize filtered entities
-
-            this.updateEntityList();
-
-            // Set initial value if one is already configured
-            if (this.config.entity) {
-                const selectedEntity = entities.find(entityId => entityId === this.config.entity);
-                if (selectedEntity) {
-                    this.entityInput.value = selectedEntity;
-                }
-            }
         } catch (error) {
             console.error("Error populating entities:", error);
         }
@@ -507,6 +503,7 @@ class FootballFixtureCardEditor extends HTMLElement {
     }
 
     setEntity(entityId) {
+        this._entitySelected = true;  // Mark that an entity has been selected
         this._entityInputValue = entityId;  // Update the temporary value
         this.entityInput.value = entityId;
         this.config.entity = entityId;
