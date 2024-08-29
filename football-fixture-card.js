@@ -336,7 +336,7 @@ class FootballFixtureCardEditor extends HTMLElement {
     }
 
     setConfig(config) {
-        this.config = config;
+        this.config = { ...config };  // Make sure to clone the config to avoid direct mutations
         this.render();
         this.populateEntities(); // Populate entities when the config is set
     }
