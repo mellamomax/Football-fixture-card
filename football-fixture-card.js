@@ -350,47 +350,77 @@ class FootballFixtureCardEditor extends HTMLElement {
 
         this.shadowRoot.innerHTML = `
             <style>
-				.form-group {
-					margin-bottom: 16px;
-					position: relative;
-				}
-				.form-group label {
-					display: block;
-					font-size: 11px;
-					color: var(--secondary-text-color);
-					position: absolute;
-					margin-left: 10px;
-					top: 12px;
+				.input-container {
+					width: 93%; /* Adjusted to match the width of the original form-group */
+					padding: 8px;
+					height: 40px;
+					border-bottom: 1px solid #818181;
+					background-color: #f5f5f5;
+					cursor: text;
 					z-index: 1;
+					margin-bottom: 24px;
+					position: relative;
+					line-height: 1.5;
+					display: flex;
+					align-items: center;
+					justify-content: space-between;
 				}
-                .form-group input {
-                    width: 93%;
-                    padding: 10px;
-                    height: 40px;
-                    font-size: 1rem;
-                    border: none;
-                    border-bottom: 1px solid transparent;
-                    background-color: #f5f5f5;
-                    border-radius: 4px;
-                    box-sizing: border-box;
-					color: var(--mdc-text-field-ink-color, rgba(0,0,0,.87));
-					font-family: var(--mdc-typography-subtitle1-font-family, Roboto, sans-serif);
-					margin-top: 18px; /* Aligns with label positioning */
-					outline: none; /* Remove the default browser outline */
-                }
-				.form-group input:focus {
-					border-bottom: 2px solid #3f3f3f;
-					outline: none; /* Remove the default browser outline */
-				}
-				.form-group input:hover {
+
+				.input-container:hover {
 					background-color: #ececec; /* A darker shade when hovering */
 				}
+
+				.input-container label {
+					display: block;
+					color: var(--secondary-text-color);
+					font-size: 11px;
+					top: 12px;
+					z-index: 1;
+					position: absolute;
+					margin-left: 10px;
+				}
+
+				.input-container:focus-within {
+					border-bottom: 2px solid #3f3f3f; /* Border for the entire container */
+				}
+
+				.input-container input[type="text"],
+				.input-container input[type="number"] {
+					width: 100%;
+					padding: 10px;
+					border: 0px solid #818181;
+					border-radius: 4px;
+					background: none;
+					color: black;
+					margin-top: 18px; /* This will move the input box down by 5px */
+					font-family: var(--mdc-typography-subtitle1-font-family, var(--mdc-typography-font-family, Roboto, sans-serif));
+					font-size: var(--mdc-typography-subtitle1-font-size, 1rem);
+				}
+
+				.input-container input[type="text"]:focus + label,
+				.input-container input[type="number"]:focus + label,
+				.input-container input[type="text"]:not(:placeholder-shown) + label,
+				.input-container input[type="number"]:not(:placeholder-shown) + label {
+					top: -10px;
+					left: 10px;
+					font-size: 12px;
+					color: var(--primary-text-color);
+				}
+
+				.input-container input[type="text"]:focus,
+				.input-container input[type="number"]:focus {
+					border: none; /* This line will remove the border */
+					outline: none; /* This line removes the default browser outline */
+				}
+
+				
+				
+				
+				
 				.dropdown {
 					position: relative;
 					border: none;
 				}
-				
-
 				.dropdown label {
 					display: block;
 					color: var(--secondary-text-color);
@@ -488,14 +518,14 @@ class FootballFixtureCardEditor extends HTMLElement {
 				</div>
 				<ul class="dropdown-list" id="entity-list"></ul>
 			</div>
-            <div class="form-group">
-                <label for="team-id">Team ID</label>
-                <input id="team-id" type="number" value="${this.config.teamId || ''}">
-            </div>
-            <div class="form-group">
-                <label for="league">League</label>
-                <input id="league" type="number" value="${this.config.league || ''}">
-            </div>
+			<div class="input-container">
+				<label for="team-id">Team ID</label>
+				<input id="team-id" type="number" value="${this.config.teamId || ''}">
+			</div>
+			<div class="input-container">
+				<label for="league">League</label>
+				<input id="league" type="number" value="${this.config.league || ''}">
+			</div>
         `;
 
 		this.dropdownInput = this.shadowRoot.querySelector('#dropdown-input');
