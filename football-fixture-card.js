@@ -359,14 +359,29 @@ class FootballFixtureCardEditor extends HTMLElement {
                     margin-bottom: 4px;
                     color: var(--primary-text-color);
                 }
-                .form-group input,
-                .form-group select {
-                    width: 100%;
+                .form-group input {
+                    width: 93%;
                     padding: 8px;
+                    height: 40px;
                     font-size: 14px;
-                    border: 1px solid var(--primary-text-color);
-                    border-radius: 4px;
+                    border: none;
+                    border-bottom: 1px solid #818181;
+                    background-color: #f5f5f5;
+                    border-radius: 0px;
                     box-sizing: border-box;
+                    line-height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    cursor: text;
+                    color: var(--mdc-text-field-ink-color, rgba(0,0,0,.87));
+                    font-family: var(--mdc-typography-subtitle1-font-family, Roboto, sans-serif);
+                    position: relative;
+                    text-indent: 7px;
+                }
+                .form-group input:focus {
+                    outline: none;
+                    border-bottom: 2px solid #3f3f3f;
                 }
 				.dropdown {
 					position: relative;
