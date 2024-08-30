@@ -358,7 +358,7 @@ class FootballFixtureCardEditor extends HTMLElement {
 					background-color: #f5f5f5;
 					cursor: text;
 					z-index: 1;
-					margin-bottom: 24px;
+					margin-bottom: 10px;
 					position: relative;
 					line-height: 1.5;
 					display: flex;
@@ -413,13 +413,16 @@ class FootballFixtureCardEditor extends HTMLElement {
 					outline: none; /* This line removes the default browser outline */
 				}
 
-				
+				ha-entity-picker {
+                    width: 100%;
+                }
 				
 				
 				
 				.dropdown {
 					position: relative;
 					border: none;
+					margin-bottom: 10px;
 				}
 				.dropdown label {
 					display: block;
@@ -511,6 +514,18 @@ class FootballFixtureCardEditor extends HTMLElement {
 					position: absolute;
 				}
             </style>
+			
+			
+            <div class="input-container">
+                <label for="entity-picker">Select Entity</label>
+                <ha-entity-picker
+                    id="entity-picker"
+                    hass="${this._hass}"
+                    value="${this.config.entity || ''}"
+                ></ha-entity-picker>
+            </div>
+			
+			
 			<div class="dropdown">
 				<div class="dropdown-input-wrapper">
 					<label for="dropdown-input">Entity*</label>
@@ -539,6 +554,17 @@ class FootballFixtureCardEditor extends HTMLElement {
 			const isDisplayed = this.entityList.style.display === 'block';
 			this.entityList.style.display = isDisplayed ? 'none' : 'block';
 		});
+		
+        // Event listener for changes in the entity picker
+        this.shadowRoot.querySelector('#entity-picker').addEventListener('change', (event) => {
+            this.config.entity = event.target.value;
+            this.dispatchEvent(new CustomEvent('config-changed', { 
+                bubbles: true, 
+                composed: true, 
+                detail: { config: this.config }
+            }));
+        });
+		
 
 		// Handle outside clicks to close the dropdowns
 		document.addEventListener('click', (event) => {
