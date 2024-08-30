@@ -341,13 +341,6 @@ class FootballFixtureCardEditor extends HTMLElement {
     setConfig(config) {
         this.config = { ...config };  // Clone the config object
         this._entityInputValue = this.config.entity || '';  // Initialize with the config's entity value
-		
-		if (this.config.entity && this._hass) {
-			const friendlyName = this._hass.states[this.config.entity]?.attributes.friendly_name || this.config.entity;
-			this.dropdownInput.value = friendlyName;
-		}
-		
-		
         this.render();
         this.populateEntities(); // Populate entities when the config is set
     }
@@ -509,6 +502,12 @@ class FootballFixtureCardEditor extends HTMLElement {
 	
 	handleInput(e) {
 		const searchTerm = e.target.value.trim().toLowerCase();
+		
+		if (searchTerm === this._entityInputValue.trim().toLowerCase()) {
+			// If the input hasn't changed, don't re-filter
+			return;
+		}
+
 		this._entityInputValue = searchTerm;
 		this.filterEntities(this._entityInputValue);
 		this.entityList.style.display = 'block';
