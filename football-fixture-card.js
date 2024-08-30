@@ -442,7 +442,7 @@ class FootballFixtureCardEditor extends HTMLElement {
 					cursor: text;
 					z-index: 1;
 					position: relative;
-					margin-bottom: 24px;
+					#margin-bottom: 24px;
 					line-height: 40px;
 					display: flex;
 					align-items: center;
@@ -499,11 +499,21 @@ class FootballFixtureCardEditor extends HTMLElement {
 		}, true);
     }
 
+	
 	handleInput(e) {
-		this._entityInputValue = e.target.value;
+		const searchTerm = e.target.value.trim().toLowerCase();
+		
+		if (searchTerm === this._entityInputValue.trim().toLowerCase()) {
+			// If the input hasn't changed, don't re-filter
+			return;
+		}
+
+		this._entityInputValue = searchTerm;
 		this.filterEntities(this._entityInputValue);
-		this.entityList.style.display = 'block'; // Ensure the dropdown is shown when typing
+		this.entityList.style.display = 'block';
 	}
+	
+	
 
     populateEntities() {
         if (!this._hass || !this.config || !this.entityList) return;
@@ -526,18 +536,19 @@ class FootballFixtureCardEditor extends HTMLElement {
     }
 
 
-    filterEntities(searchTerm) {
-        if (!searchTerm) {
-            this.filteredEntities = [...this.allEntities];
-        } else {
-            const lowerCaseSearchTerm = searchTerm.toLowerCase();
-            this.filteredEntities = this.allEntities.filter(entity =>
-                entity.friendlyName.toLowerCase().includes(lowerCaseSearchTerm) ||
-                entity.entityId.toLowerCase().includes(lowerCaseSearchTerm)
-            );
-        }
-        this.updateEntityList();
-    }
+	filterEntities(searchTerm) {
+		// Optimize filtering by using more efficient looping and checking
+		const filteredEntities = this.allEntities.filter(entity =>
+			entity.friendlyName.toLowerCase().includes(searchTerm) ||
+			entity.entityId.toLowerCase().includes(searchTerm)
+		);
+
+		// Only update the DOM if the filtered list has changed
+		if (JSON.stringify(filteredEntities) !== JSON.stringify(this.filteredEntities)) {
+			this.filteredEntities = filteredEntities;
+			this.updateEntityList();
+		}
+	}
 
     updateEntityList() {
         this.entityList.innerHTML = '';
