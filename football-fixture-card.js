@@ -350,43 +350,47 @@ class FootballFixtureCardEditor extends HTMLElement {
 
         this.shadowRoot.innerHTML = `
             <style>
-                .form-group {
-                    margin-bottom: 16px;
-                }
-                .form-group label {
-                    display: block;
-                    font-size: 14px;
-                    margin-bottom: 4px;
-                    color: var(--primary-text-color);
-                }
+				.form-group {
+					margin-bottom: 16px;
+					position: relative;
+				}
+				.form-group label {
+					display: block;
+					font-size: 11px;
+					color: var(--secondary-text-color);
+					position: absolute;
+					margin-left: 10px;
+					top: 12px;
+					z-index: 1;
+				}
                 .form-group input {
                     width: 93%;
-                    padding: 8px;
+                    padding: 10px;
                     height: 40px;
-                    font-size: 14px;
+                    font-size: 1rem;
                     border: none;
-                    border-bottom: 1px solid #818181;
+                    border-bottom: 1px solid transparent;
                     background-color: #f5f5f5;
-                    border-radius: 0px;
+                    border-radius: 4px;
                     box-sizing: border-box;
-                    line-height: 40px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    cursor: text;
-                    color: var(--mdc-text-field-ink-color, rgba(0,0,0,.87));
-                    font-family: var(--mdc-typography-subtitle1-font-family, Roboto, sans-serif);
-                    position: relative;
-                    text-indent: 7px;
+					color: var(--mdc-text-field-ink-color, rgba(0,0,0,.87));
+					font-family: var(--mdc-typography-subtitle1-font-family, Roboto, sans-serif);
+					margin-top: 18px; /* Aligns with label positioning */
+					outline: none; /* Remove the default browser outline */
                 }
-                .form-group input:focus {
-                    outline: none;
-                    border-bottom: 2px solid #3f3f3f;
-                }
+				.form-group input:focus {
+					border-bottom: 2px solid #3f3f3f;
+					outline: none; /* Remove the default browser outline */
+				}
+				.form-group input:hover {
+					background-color: #ececec; /* A darker shade when hovering */
+				}
 				.dropdown {
 					position: relative;
 					border: none;
 				}
+				
+
 				.dropdown label {
 					display: block;
 					color: var(--secondary-text-color);
