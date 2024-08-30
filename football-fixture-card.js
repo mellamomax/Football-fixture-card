@@ -520,8 +520,9 @@ class FootballFixtureCardEditor extends HTMLElement {
                 <label for="entity-picker">Select Entity</label>
                 <ha-entity-picker
                     id="entity-picker"
-                    hass="${this._hass}"
-                    value="${this.config.entity || ''}"
+                    .hass="${this._hass}"
+                    .value="${this.config.entity || ''}"
+                    domain-filter="sensor"
                 ></ha-entity-picker>
             </div>
 			
@@ -556,14 +557,15 @@ class FootballFixtureCardEditor extends HTMLElement {
 		});
 		
         // Event listener for changes in the entity picker
-        this.shadowRoot.querySelector('#entity-picker').addEventListener('change', (event) => {
-            this.config.entity = event.target.value;
+        this.shadowRoot.querySelector('#entity-picker').addEventListener('value-changed', (event) => {
+            this.config.entity = event.detail.value;
             this.dispatchEvent(new CustomEvent('config-changed', { 
                 bubbles: true, 
                 composed: true, 
                 detail: { config: this.config }
             }));
         });
+    }
 		
 
 		// Handle outside clicks to close the dropdowns
