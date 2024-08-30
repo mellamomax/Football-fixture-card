@@ -340,7 +340,7 @@ class FootballFixtureCardEditor extends HTMLElement {
 
     setConfig(config) {
         this.config = { ...config };  // Clone the config object
-        this._entityInputValue = this.config?.entity || '';  // Safely initialize with the config's entity value
+        this._entityInputValue = this.config.entity || '';  // Initialize with the config's entity value
         this.render();
         this.populateEntities(); // Populate entities when the config is set
     }
@@ -500,18 +500,18 @@ class FootballFixtureCardEditor extends HTMLElement {
     }
 
 	
-    handleInput(e) {
-        const searchTerm = e.target.value.trim().toLowerCase();
-        
-        if (searchTerm === this._entityInputValue.trim().toLowerCase()) {
-            // If the input hasn't changed, don't re-filter
-            return;
-        }
+	handleInput(e) {
+		const searchTerm = e.target.value.trim().toLowerCase();
+		
+		if (searchTerm === this._entityInputValue.trim().toLowerCase()) {
+			// If the input hasn't changed, don't re-filter
+			return;
+		}
 
-        this._entityInputValue = searchTerm;
-        this.filterEntities(this._entityInputValue);
-        this.entityList.style.display = 'block';
-    }
+		this._entityInputValue = searchTerm;
+		this.filterEntities(this._entityInputValue);
+		this.entityList.style.display = 'block';
+	}
 	
 	
 
@@ -533,27 +533,22 @@ class FootballFixtureCardEditor extends HTMLElement {
         this.filteredEntities = [...entities]; // Initialize with all entities
 
         this.updateEntityList();
-
-        // Call updateInputField after entities are populated
-        if (this.config?.entity) {
-            this.updateInputField(this.config.entity);
-        }
     }
 
 
-    filterEntities(searchTerm) {
-        // Optimize filtering by using more efficient looping and checking
-        const filteredEntities = this.allEntities.filter(entity =>
-            entity.friendlyName.toLowerCase().includes(searchTerm) ||
-            entity.entityId.toLowerCase().includes(searchTerm)
-        );
+	filterEntities(searchTerm) {
+		// Optimize filtering by using more efficient looping and checking
+		const filteredEntities = this.allEntities.filter(entity =>
+			entity.friendlyName.toLowerCase().includes(searchTerm) ||
+			entity.entityId.toLowerCase().includes(searchTerm)
+		);
 
-        // Only update the DOM if the filtered list has changed
-        if (JSON.stringify(filteredEntities) !== JSON.stringify(this.filteredEntities)) {
-            this.filteredEntities = filteredEntities;
-            this.updateEntityList();
-        }
-    }
+		// Only update the DOM if the filtered list has changed
+		if (JSON.stringify(filteredEntities) !== JSON.stringify(this.filteredEntities)) {
+			this.filteredEntities = filteredEntities;
+			this.updateEntityList();
+		}
+	}
 
     updateEntityList() {
         this.entityList.innerHTML = '';
@@ -582,13 +577,6 @@ class FootballFixtureCardEditor extends HTMLElement {
         }));
         this.entityList.style.display = 'none';
     }
-	
-	updateInputField(entityId) {
-        const entity = this.allEntities.find(e => e.entityId === entityId);
-        if (entity) {
-            this.dropdownInput.value = entity.friendlyName || entityId;
-        }
-    }	
 
     set hass(hass) {
         this._hass = hass;
