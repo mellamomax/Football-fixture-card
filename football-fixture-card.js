@@ -343,6 +343,9 @@ class FootballFixtureCardEditor extends HTMLElement {
         this._entityInputValue = this.config.entity || '';  // Initialize with the config's entity value
         this.render();
         this.populateEntities(); // Populate entities when the config is set
+        if (this.config.entity) {
+            this.updateInputField(this.config.entity);
+        }
     }
 
     render() {
@@ -536,19 +539,19 @@ class FootballFixtureCardEditor extends HTMLElement {
     }
 
 
-	filterEntities(searchTerm) {
-		// Optimize filtering by using more efficient looping and checking
-		const filteredEntities = this.allEntities.filter(entity =>
-			entity.friendlyName.toLowerCase().includes(searchTerm) ||
-			entity.entityId.toLowerCase().includes(searchTerm)
-		);
+    filterEntities(searchTerm) {
+        // Optimize filtering by using more efficient looping and checking
+        const filteredEntities = this.allEntities.filter(entity =>
+            entity.friendlyName.toLowerCase().includes(searchTerm) ||
+            entity.entityId.toLowerCase().includes(searchTerm)
+        );
 
-		// Only update the DOM if the filtered list has changed
-		if (JSON.stringify(filteredEntities) !== JSON.stringify(this.filteredEntities)) {
-			this.filteredEntities = filteredEntities;
-			this.updateEntityList();
-		}
-	}
+        // Only update the DOM if the filtered list has changed
+        if (JSON.stringify(filteredEntities) !== JSON.stringify(this.filteredEntities)) {
+            this.filteredEntities = filteredEntities;
+            this.updateEntityList();
+        }
+    }
 
     updateEntityList() {
         this.entityList.innerHTML = '';
@@ -577,10 +580,20 @@ class FootballFixtureCardEditor extends HTMLElement {
         }));
         this.entityList.style.display = 'none';
     }
+	
+	updateInputField(entityId) {
+        const entity = this.allEntities.find(e => e.entityId === entityId);
+        if (entity) {
+            this.dropdownInput.value = entity.friendlyName || entityId;
+        }
+    }	
 
     set hass(hass) {
         this._hass = hass;
         this.populateEntities();
+        if (this.config.entity) {
+            this.updateInputField(this.config.entity);
+        }
     }
 }
 
