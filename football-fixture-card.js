@@ -568,7 +568,7 @@ class FootballFixtureCardEditor extends HTMLElement {
     }
 
     setEntity(entityId) {
-        const friendlyName = this._hass.states[entityId]?.attributes.friendly_name || entityId;
+        const friendlyName = this._hass.states[entityId].attributes.friendly_name || entityId;
         this.dropdownInput.value = friendlyName;
         this.config.entity = entityId;
         this.dispatchEvent(new CustomEvent('config-changed', { 
