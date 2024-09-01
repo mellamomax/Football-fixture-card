@@ -92,64 +92,64 @@ class FootballFixtureCard extends HTMLElement {
     `;
 	
 
-    this.currentRound = 1;  // Initialize the current round, will be overwritten by the actual current round from hass
+    this.currentRound = null;  // Initialize the current round, will be overwritten by the actual current round from hass
   }
 
   set hass(hass) {
-    if (!this._hass || this._hass !== hass) {
-      this._hass = hass;
+    this._hass = hass;
 
-      // Get the current round from the sensor's state attributes
-	  const entityId = this.config.entity;
-	  const state = this._hass.states[entityId];
-	  if (state && state.attributes.current_round) {
-		  const currentRoundFromState = state.attributes.current_round;
- 
-          // If this is the first time loading or if the user is at the current round,
-          // set the current round to the one from the state
-          if (!this.currentRoundSetByUser || this.currentRound === currentRoundFromState) {
-              this.currentRound = currentRoundFromState;
-              this.currentRoundSetByUser = false; // reset the user-set flag
-          }
-      }	
+    // Get the current round from the sensor's state attributes
+    const entityId = this.config.entity;
+    const state = this._hass.states[entityId];
+    if (state && state.attributes.current_round) {
+      const currentRoundFromState = state.attributes.current_round;
 
-      // Add event listeners only once
-      if (!this.listenersAdded) {
-        this.shadowRoot.getElementById('prev-round').addEventListener('click', () => this.changeRound(-1));
-        this.shadowRoot.getElementById('next-round').addEventListener('click', () => this.changeRound(1));
-		this.shadowRoot.getElementById('round-title').addEventListener('click', () => this.returnToCurrentRound());
-        this.listenersAdded = true;  // Flag to prevent adding listeners multiple times
+      // If this is the first time loading or if the user is at the current round,
+      // set the current round to the one from the state
+      if (this.currentRound === null || !this.currentRoundSetByUser || this.currentRound === currentRoundFromState) {
+        this.currentRound = currentRoundFromState;
+        this.currentRoundSetByUser = false; // reset the user-set flag
       }
-
-      // Display the current round's fixtures
-      this.displayFixtures(this.currentRound);
+    } else {
+      this.currentRound = 1; // Default to Round 1 if no state is available
     }
+
+    // Add event listeners only once
+    if (!this.listenersAdded) {
+      this.shadowRoot.getElementById('prev-round').addEventListener('click', () => this.changeRound(-1));
+      this.shadowRoot.getElementById('next-round').addEventListener('click', () => this.changeRound(1));
+      this.shadowRoot.getElementById('round-title').addEventListener('click', () => this.returnToCurrentRound());
+      this.listenersAdded = true;  // Flag to prevent adding listeners multiple times
+    }
+
+    // Display the current round's fixtures
+    this.displayFixtures(this.currentRound);
   }
 
   changeRound(direction) {
-      const entityId = this.config.entity;
-      const state = this._hass.states[entityId];
-      if (!state) {
-          return;
-      }
+    const entityId = this.config.entity;
+    const state = this._hass.states[entityId];
+    if (!state) {
+      return;
+    }
 
-      this.currentRound += direction;
+    this.currentRound += direction;
 
-      // If the current round is less than 1, reset it to 1 (or min round number)
-      if (this.currentRound < 1) {
-          this.currentRound = 1;
-      }
+    // If the current round is less than 1, reset it to 1 (or min round number)
+    if (this.currentRound < 1) {
+      this.currentRound = 1;
+    }
 
-      // Ensure that the round does not go above the maximum available rounds (optional)
-      if (state.attributes.max_round && this.currentRound > state.attributes.max_round) {
-          this.currentRound = state.attributes.max_round;
-      }
+    // Ensure that the round does not go above the maximum available rounds (optional)
+    if (state.attributes.max_round && this.currentRound > state.attributes.max_round) {
+      this.currentRound = state.attributes.max_round;
+    }
 
-      // Mark that the user has manually set the round
-      this.currentRoundSetByUser = true;
+    // Mark that the user has manually set the round
+    this.currentRoundSetByUser = true;
 
-      // Display the fixtures for the new round
-      this.displayFixtures(this.currentRound);
+    // Display the fixtures for the new round
+    this.displayFixtures(this.currentRound);
   }
 
 
