@@ -31,6 +31,7 @@ class FootballFixtureCard extends HTMLElement {
         .round-title {
           font-weight: bold;
           font-size: 1.2em;
+          cursor: pointer;  /* Make the round title clickable */
         }
         .date-group {
           margin-top: 16px;
@@ -116,6 +117,7 @@ class FootballFixtureCard extends HTMLElement {
       if (!this.listenersAdded) {
         this.shadowRoot.getElementById('prev-round').addEventListener('click', () => this.changeRound(-1));
         this.shadowRoot.getElementById('next-round').addEventListener('click', () => this.changeRound(1));
+		this.shadowRoot.getElementById('round-title').addEventListener('click', () => this.returnToCurrentRound());
         this.listenersAdded = true;  // Flag to prevent adding listeners multiple times
       }
 
@@ -148,6 +150,22 @@ class FootballFixtureCard extends HTMLElement {
 
       // Display the fixtures for the new round
       this.displayFixtures(this.currentRound);
+  }
+
+
+  returnToCurrentRound() {
+    const entityId = this.config.entity;
+    const state = this._hass.states[entityId];
+    if (!state || !state.attributes.current_round) {
+      return;
+    }
+
+    // Set the current round back to the actual current round
+    this.currentRound = state.attributes.current_round;
+    this.currentRoundSetByUser = false; // Reset the user-set flag
+
+    // Display the fixtures for the current round
+    this.displayFixtures(this.currentRound);
   }
 
   displayFixtures(round) {
@@ -413,8 +431,6 @@ class FootballFixtureCardEditor extends HTMLElement {
 					outline: none; /* This line removes the default browser outline */
 				}
 
-				
-				
 				
 				
 				.dropdown {
