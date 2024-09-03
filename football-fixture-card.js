@@ -555,10 +555,11 @@ class FootballFixtureCardEditor extends HTMLElement {
         // Event listeners
         this.dropdownInput.addEventListener('input', (e) => this.handleInput(e));
 
-        this.dropdownInput.addEventListener('focus', () => {
-            // Show the dropdown list when the input field is focused
-            this.entityList.style.display = 'block';
-        });
+		// Inside the render method, for handling clicks to toggle the dropdown visibility:
+		this.dropdownInput.addEventListener('click', () => {
+			const isDisplayed = this.entityList.style.display === 'block';
+			this.entityList.style.display = isDisplayed ? 'none' : 'block';
+		});
 
         // Prevent the list from closing immediately after being clicked
         this.entityList.addEventListener('mousedown', (event) => {
@@ -567,10 +568,10 @@ class FootballFixtureCardEditor extends HTMLElement {
 
         // Handle outside clicks to close the dropdown
         document.addEventListener('click', (event) => {
-            if (!this.shadowRoot.contains(event.target)) {
-                this.entityList.style.display = 'none';
-            }
-        }, true);
+			if (!this.shadowRoot.contains(event.target)) {
+				this.entityList.style.display = 'none'; // Close the dropdown when clicked outside
+			}
+		}, true);	
     }
 
 	
@@ -586,25 +587,25 @@ class FootballFixtureCardEditor extends HTMLElement {
 	
 	
 
-    populateEntities() {
-        if (!this._hass || !this.config || !this.entityList) return;
+	populateEntities() {
+		if (!this._hass || !this.config || !this.entityList) return;
 
-        const entities = Object.keys(this._hass.states)
-            .filter(entityId => entityId.startsWith('sensor.') || entityId.startsWith('input_number.') || entityId.startsWith('automation.'))
-            .map(entityId => {
-                return {
-                    entityId: entityId,
-                    friendlyName: this._hass.states[entityId].attributes.friendly_name || entityId
-                };
-            });
+		// Populate allEntities first
+		this.allEntities = Object.keys(this._hass.states)
+			.filter(entityId => entityId.startsWith('sensor.')) // Adjust based on your needs
+			.map(entityId => {
+				return {
+					entityId: entityId,
+					friendlyName: this._hass.states[entityId].attributes.friendly_name || entityId
+				};
+			});
 
-        entities.sort((a, b) => a.friendlyName.localeCompare(b.friendlyName));
+		// Initially, show all entities
+		this.filteredEntities = [...this.allEntities];
 
-        this.allEntities = entities; // Store all entities for filtering
-        this.filteredEntities = [...entities]; // Initialize with all entities
+		this.updateEntityList();
+	}
 
-        this.updateEntityList();
-    }
 
 
 	filterEntities(searchTerm) {
@@ -648,17 +649,17 @@ class FootballFixtureCardEditor extends HTMLElement {
 
 
 
-    setEntity(entityId) {
-        const friendlyName = this._hass.states[entityId]?.attributes?.friendly_name || entityId;
-        this.dropdownInput.value = friendlyName; // Set the friendly name in the input
-        this.config.entity = entityId;
-        this.dispatchEvent(new CustomEvent('config-changed', { 
-            bubbles: true, 
-            composed: true, 
-            detail: { config: this.config }
-        }));
-        this.entityList.style.display = 'none'; // Close the dropdown after selecting an entity
-    }
+	setEntity(entityId) {
+		const friendlyName = this._hass.states[entityId]?.attributes?.friendly_name || entityId;
+		this.dropdownInput.value = friendlyName; // Set the friendly name in the input
+		this.config.entity = entityId;
+		this.dispatchEvent(new CustomEvent('config-changed', { 
+			bubbles: true, 
+			composed: true, 
+			detail: { config: this.config }
+		}));
+		this.entityList.style.display = 'none'; // Hide the dropdown
+	}
 
     set hass(hass) {
         this._hass = hass;
