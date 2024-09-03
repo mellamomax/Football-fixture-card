@@ -605,40 +605,40 @@ class FootballFixtureCardEditor extends HTMLElement {
 
 
 	filterEntities(searchTerm) {
-		// Filter entities based on the search term
 		const filteredEntities = this.allEntities.filter(entity =>
 			entity.friendlyName.toLowerCase().includes(searchTerm) ||
 			entity.entityId.toLowerCase().includes(searchTerm)
 		);
 
-		// Update the filtered list only if there are changes
 		if (JSON.stringify(filteredEntities) !== JSON.stringify(this.filteredEntities)) {
 			this.filteredEntities = filteredEntities;
 			this.updateEntityList();
 		}
+	}
 
-		// If the search term is empty, maintain the filtered state
-		if (searchTerm === '') {
-			this.filteredEntities = this.allEntities;
-			this.updateEntityList();
+	updateEntityList() {
+		this.entityList.innerHTML = '';
+		this.filteredEntities.forEach(({ entityId, friendlyName }) => {
+			const listItem = document.createElement('li');
+			listItem.innerHTML = `
+				<div style="display: flex; align-items: center;">
+					<ha-icon icon="mdi:motion-sensor" style="margin-right: 8px;"></ha-icon>
+					<span>${friendlyName}</span>
+				</div>
+				<span style="display: block; font-size: smaller; color: grey;">${entityId}</span>
+			`;
+			listItem.addEventListener('click', () => this.setEntity(entityId));
+			this.entityList.appendChild(listItem);
+		});
+
+		// Ensure the filtered list remains visible
+		if (this.filteredEntities.length > 0) {
+			this.entityList.style.display = 'block';
+		} else {
+			this.entityList.style.display = 'none';
 		}
 	}
 
-    updateEntityList() {
-        this.entityList.innerHTML = '';
-        this.filteredEntities.forEach(({ entityId, friendlyName }) => {
-            const listItem = document.createElement('li');
-            listItem.innerHTML = `
-                <div style="display: flex; align-items: center;">
-                    <ha-icon icon="mdi:motion-sensor" style="margin-right: 8px;"></ha-icon>
-                    <span>${friendlyName}</span>
-                </div>
-                <span style="display: block; font-size: smaller; color: grey;">${entityId}</span>
-            `;
-            listItem.addEventListener('click', () => this.setEntity(entityId));
-            this.entityList.appendChild(listItem);
-        });
-    }	
 
     setEntity(entityId) {
         const friendlyName = this._hass.states[entityId]?.attributes?.friendly_name || entityId;
