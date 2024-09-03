@@ -575,15 +575,11 @@ class FootballFixtureCardEditor extends HTMLElement {
     }
 
 	
-    handleInput(e) {
-        const searchTerm = e.target.value.trim().toLowerCase();
+	handleInput(e) {
+		const searchTerm = e.target.value.trim().toLowerCase();
+		this.filterEntities(searchTerm);
+	}
 
-        // Check if the input value has changed
-        if (searchTerm !== this._entityInputValue.trim().toLowerCase()) {
-            this._entityInputValue = searchTerm;
-            this.filterEntities(this._entityInputValue);
-        }
-    }
 	
 	
 
@@ -609,16 +605,35 @@ class FootballFixtureCardEditor extends HTMLElement {
 
 
 	filterEntities(searchTerm) {
-		const filteredEntities = this.allEntities.filter(entity =>
-			entity.friendlyName.toLowerCase().includes(searchTerm) ||
-			entity.entityId.toLowerCase().includes(searchTerm)
-		);
+		const filteredEntities = Object.keys(this._hass.states)
+			.filter(entityId => entityId.startsWith('sensor.'))
+			.filter(entity => {
+				const friendlyName = this._hass.states[entity]?.attributes?.friendly_name || entity;
+				return friendlyName.toLowerCase().includes(searchTerm) || entity.toLowerCase().includes(searchTerm);
+			});
 
-		if (JSON.stringify(filteredEntities) !== JSON.stringify(this.filteredEntities)) {
-			this.filteredEntities = filteredEntities;
-			this.updateEntityList();
-		}
+		// Clear existing entities
+		this.entityList.innerHTML = '';
+
+		// Populate the dropdown
+		filteredEntities.forEach(entityId => {
+			const friendlyName = this._hass.states[entityId]?.attributes?.friendly_name || entityId;
+			const listItem = document.createElement('li');
+			listItem.innerHTML = `
+				<div style="display: flex; align-items: center;">
+					<ha-icon icon="mdi:motion-sensor" style="margin-right: 8px;"></ha-icon>
+					<span>${friendlyName}</span>
+				</div>
+				<span style="display: block; font-size: smaller; color: grey;">${entityId}</span>
+			`;
+			listItem.addEventListener('click', () => this.setEntity(entityId));
+			this.entityList.appendChild(listItem);
+		});
+
+		// Show or hide the dropdown based on filtered results
+		this.entityList.style.display = filteredEntities.length > 0 ? 'block' : 'none';
 	}
+
 
 	updateEntityList() {
 		this.entityList.innerHTML = '';
