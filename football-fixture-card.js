@@ -549,18 +549,23 @@ class FootballFixtureCardEditor extends HTMLElement {
 			</div>
         `;
 
-		this.dropdownInput = this.shadowRoot.querySelector('#dropdown-input');
-		this.entityList = this.shadowRoot.querySelector('#entity-list');
+        this.dropdownInput = this.shadowRoot.querySelector('#dropdown-input');
+        this.entityList = this.shadowRoot.querySelector('#entity-list');
 
-		// Event listeners
-		this.dropdownInput.addEventListener('input', (e) => this.handleInput(e));
+        // Event listeners
+        this.dropdownInput.addEventListener('input', (e) => this.handleInput(e));
 
         this.dropdownInput.addEventListener('focus', () => {
             // Show the dropdown list when the input field is focused
             this.entityList.style.display = 'block';
         });
 
-        // Handle outside clicks to close the dropdowns
+        // Prevent the list from closing immediately after being clicked
+        this.entityList.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+        });
+
+        // Handle outside clicks to close the dropdown
         document.addEventListener('click', (event) => {
             if (!this.shadowRoot.contains(event.target)) {
                 this.entityList.style.display = 'none';
@@ -569,15 +574,15 @@ class FootballFixtureCardEditor extends HTMLElement {
     }
 
 	
-	handleInput(e) {
-		const searchTerm = e.target.value.trim().toLowerCase();
+    handleInput(e) {
+        const searchTerm = e.target.value.trim().toLowerCase();
 
-		// Check if the input value has changed
-		if (searchTerm !== this._entityInputValue.trim().toLowerCase()) {
-			this._entityInputValue = searchTerm;
-			this.filterEntities(this._entityInputValue);
-		}
-	}
+        // Check if the input value has changed
+        if (searchTerm !== this._entityInputValue.trim().toLowerCase()) {
+            this._entityInputValue = searchTerm;
+            this.filterEntities(this._entityInputValue);
+        }
+    }
 	
 	
 
