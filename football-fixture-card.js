@@ -572,12 +572,11 @@ class FootballFixtureCardEditor extends HTMLElement {
 	handleInput(e) {
 		const searchTerm = e.target.value.trim().toLowerCase();
 
-		if (searchTerm === this._entityInputValue.trim().toLowerCase()) {
-			return;
+		// Check if the input value has changed
+		if (searchTerm !== this._entityInputValue.trim().toLowerCase()) {
+			this._entityInputValue = searchTerm;
+			this.filterEntities(this._entityInputValue);
 		}
-
-		this._entityInputValue = searchTerm;
-		this.filterEntities(this._entityInputValue);
 	}
 	
 	
@@ -617,7 +616,7 @@ class FootballFixtureCardEditor extends HTMLElement {
 
 	updateEntityList() {
 		this.entityList.innerHTML = '';
-		
+
 		// If there are filtered entities, populate the list
 		if (this.filteredEntities.length > 0) {
 			this.filteredEntities.forEach(({ entityId, friendlyName }) => {
@@ -633,13 +632,14 @@ class FootballFixtureCardEditor extends HTMLElement {
 				this.entityList.appendChild(listItem);
 			});
 
-			// Show the dropdown if there are results
+			// Ensure the filtered list remains visible
 			this.entityList.style.display = 'block';
 		} else {
 			// Hide the dropdown if no results match
 			this.entityList.style.display = 'none';
 		}
 	}
+
 
 
 
