@@ -363,7 +363,7 @@ class FootballFixtureCardEditor extends HTMLElement {
 
         // If there is already a selected entity, display it in the input field
         if (this._entityInputValue) {
-            this.setEntity(this._entityInputValue);
+            this.dropdownInput.value = this._hass.states[this._entityInputValue]?.attributes?.friendly_name || this._entityInputValue;
         }
     }
 
@@ -555,33 +555,31 @@ class FootballFixtureCardEditor extends HTMLElement {
 		// Event listeners
 		this.dropdownInput.addEventListener('input', (e) => this.handleInput(e));
 
-		this.dropdownInput.addEventListener('click', () => {
-			// Toggle the display of the dropdown list
-			const isDisplayed = this.entityList.style.display === 'block';
-			this.entityList.style.display = isDisplayed ? 'none' : 'block';
-		});
+        this.dropdownInput.addEventListener('focus', () => {
+            // Show the dropdown list when the input field is focused
+            this.entityList.style.display = 'block';
+        });
 
-		// Handle outside clicks to close the dropdowns
-		document.addEventListener('click', (event) => {
-			if (!this.shadowRoot.contains(event.target)) {
-				this.entityList.style.display = 'none';
-			}
-		}, true);
+        // Handle outside clicks to close the dropdowns
+        document.addEventListener('click', (event) => {
+            if (!this.shadowRoot.contains(event.target)) {
+                this.entityList.style.display = 'none';
+            }
+        }, true);
     }
 
 	
-	handleInput(e) {
-		const searchTerm = e.target.value.trim().toLowerCase();
-		
-		if (searchTerm === this._entityInputValue.trim().toLowerCase()) {
-			// If the input hasn't changed, don't re-filter
-			return;
-		}
+    handleInput(e) {
+        const searchTerm = e.target.value.trim().toLowerCase();
+        
+        if (searchTerm === this._entityInputValue.trim().toLowerCase()) {
+            return;
+        }
 
-		this._entityInputValue = searchTerm;
-		this.filterEntities(this._entityInputValue);
-		this.entityList.style.display = 'block';
-	}
+        this._entityInputValue = searchTerm;
+        this.filterEntities(this._entityInputValue);
+        this.entityList.style.display = 'block';
+    }
 	
 	
 
@@ -626,38 +624,32 @@ class FootballFixtureCardEditor extends HTMLElement {
 		}
 	}
 
-	updateEntityList() {
-		// Clear the list before updating
-		this.entityList.innerHTML = '';
-
-		// Display the filtered or full list of entities
-		this.filteredEntities.forEach(({ entityId, friendlyName }) => {
-			const listItem = document.createElement('li');
-			listItem.innerHTML = `
-				<div style="display: flex; align-items: center;">
-					<ha-icon icon="mdi:motion-sensor" style="margin-right: 8px;"></ha-icon>
-					<span>${friendlyName}</span>
-				</div>
-				<span style="display: block; font-size: smaller; color: grey;">${entityId}</span>
-			`;
-			listItem.addEventListener('click', () => this.setEntity(entityId));
-			this.entityList.appendChild(listItem);
-		});
-
-		// Keep the list visible after updating
-		this.entityList.style.display = 'block';
-	}
+    updateEntityList() {
+        this.entityList.innerHTML = '';
+        this.filteredEntities.forEach(({ entityId, friendlyName }) => {
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+                <div style="display: flex; align-items: center;">
+                    <ha-icon icon="mdi:motion-sensor" style="margin-right: 8px;"></ha-icon>
+                    <span>${friendlyName}</span>
+                </div>
+                <span style="display: block; font-size: smaller; color: grey;">${entityId}</span>
+            `;
+            listItem.addEventListener('click', () => this.setEntity(entityId));
+            this.entityList.appendChild(listItem);
+        });
+    }	
 
     setEntity(entityId) {
-        const friendlyName = this._hass.states[entityId].attributes.friendly_name || entityId;
-        this.dropdownInput.value = friendlyName;
+        const friendlyName = this._hass.states[entityId]?.attributes?.friendly_name || entityId;
+        this.dropdownInput.value = friendlyName; // Set the friendly name in the input
         this.config.entity = entityId;
         this.dispatchEvent(new CustomEvent('config-changed', { 
             bubbles: true, 
             composed: true, 
             detail: { config: this.config }
         }));
-        this.entityList.style.display = 'none';
+        this.entityList.style.display = 'none'; // Close the dropdown after selecting an entity
     }
 
     set hass(hass) {
