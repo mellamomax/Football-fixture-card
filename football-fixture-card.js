@@ -353,7 +353,6 @@ class FootballFixtureCardEditor extends HTMLElement {
         this._entityInputValue = '';  // To store the current input value temporarily
         this._entitySelected = false; // To track whether an entity has been selected
     }
-	
 
     setConfig(config) {
         this.config = { ...config };  // Clone the config object
@@ -533,13 +532,13 @@ class FootballFixtureCardEditor extends HTMLElement {
 					position: absolute;
 				}
             </style>
-			<div class="dropdown">
-				<div class="dropdown-input-wrapper">
-					<label for="dropdown-input">Entity*</label>
-					<input type="text" id="dropdown-input" placeholder="Select an option" autocomplete="off">
-				</div>
-				<ul class="dropdown-list" id="entity-list"></ul>
-			</div>
+            <div class="dropdown">
+                <div class="dropdown-input-wrapper">
+                    <label for="dropdown-input">Entity*</label>
+                    <input type="text" id="dropdown-input" placeholder="Select an option" autocomplete="off">
+                </div>
+                <ul class="dropdown-list" id="entity-list" style="display: none;"></ul>
+            </div>
 			<div class="input-container">
 				<label for="team-id">Team ID</label>
 				<input id="team-id" type="number" value="${this.config.teamId || ''}">
