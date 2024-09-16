@@ -253,9 +253,10 @@ class FootballFixtureCard extends HTMLElement {
                 minute: '2-digit',
               });
 
-		const teamName = this.config.teamName || 'Barcelona'; // Default to 'Barcelona' if not specified
+		const teamId = Number(this.config.teamId) || 529; // Default to 529 (Barcelona) if not specified
+		// Use strict equality '===' and ensure both sides are numbers
 		const isTeamFixture =
-		  fixture.home_team === teamName || fixture.away_team === teamName;
+		  fixture.home_team_id === teamId || fixture.away_team_id === teamId;
 
         // Determine if there is a winning team and style the score accordingly
         const homeScoreBold = fixture.score.home > fixture.score.away ? 'bold' : 'normal';
@@ -266,7 +267,7 @@ class FootballFixtureCard extends HTMLElement {
         homeTeamElement.innerHTML = `
           <div class="team">
             <img class="team-logo" src="${fixture.home_team_logo}" alt="${fixture.home_team} logo">
-            <span class="${fixture.home_team === teamName ? 'bold' : ''}">${fixture.home_team}</span>
+            <span class="${fixture.home_team_id === teamId ? 'bold' : ''}">${fixture.home_team}</span>
           </div>
           <div class="score" style="font-weight: ${homeScoreBold};">
             ${
@@ -285,7 +286,7 @@ class FootballFixtureCard extends HTMLElement {
         awayTeamElement.innerHTML = `
           <div class="team">
             <img class="team-logo" src="${fixture.away_team_logo}" alt="${fixture.away_team} logo">
-            <span class="${fixture.away_team === 'teamName' ? 'bold' : ''}">${fixture.away_team}</span>
+            <span class="${fixture.away_team_id === teamId ? 'bold' : ''}">${fixture.away_team}</span>
           </div>
           <div class="score" style="font-weight: ${awayScoreBold};">
             ${
@@ -349,7 +350,7 @@ class FootballFixtureCard extends HTMLElement {
   static getStubConfig() {
     return {
       entity: '',
-      teamName: '',
+      teamId: '',
       league: '',
     };
   }
@@ -570,8 +571,8 @@ class FootballFixtureCardEditor extends HTMLElement {
 			<ul class="dropdown-list" id="entity-list" style="display: none;"></ul>
 		</div>
 		<div class="input-container">
-		  <label for="team-name">Team Name</label>
-		  <input id="team-name" type="text" value="${this.config.teamName || ''}">
+		  <label for="team-id">Team Id</label>
+		  <input id="team-id" type="text" value="${this.config.teamId || ''}">
 		</div>
 		<div class="input-container">
 			<label for="league">League</label>
@@ -581,7 +582,7 @@ class FootballFixtureCardEditor extends HTMLElement {
 
     this.dropdownInput = this.shadowRoot.querySelector('#dropdown-input');
     this.entityList = this.shadowRoot.querySelector('#entity-list');
-    this.teamNameInput = this.shadowRoot.querySelector('#team-name');
+    this.teamIdInput = this.shadowRoot.querySelector('#team-id');
     this.leagueInput = this.shadowRoot.querySelector('#league');
 
     this.addEventListeners();
@@ -591,7 +592,7 @@ class FootballFixtureCardEditor extends HTMLElement {
   addEventListeners() {
     this.dropdownInput.addEventListener('input', (e) => this.handleInput(e));
     this.dropdownInput.addEventListener('click', (e) => this.toggleDropdown(e));
-    this.teamNameInput.addEventListener('change', (e) => this.handleTeamNameChange(e));
+    this.teamIdInput.addEventListener('change', (e) => this.handleTeamIdChange(e));
     this.leagueInput.addEventListener('change', (e) => this.handleLeagueChange(e));
 
     // Close the dropdown when clicking outside
@@ -605,7 +606,7 @@ class FootballFixtureCardEditor extends HTMLElement {
 
   updateInputValues() {
     this.dropdownInput.value = this.getEntityFriendlyName(this.config.entity);
-    this.teamNameInput.value = this.config.teamName || '';
+    this.teamIdInput.value = this.config.teamId || '';
     this.leagueInput.value = this.config.league || '';
   }
 
@@ -679,8 +680,8 @@ class FootballFixtureCardEditor extends HTMLElement {
     this.dispatchConfigChanged();
   }
 
-  handleTeamNameChange(e) {
-    this.config.teamName = e.target.value;
+  handleTeamIdChange(e) {
+    this.config.teamId = e.target.value;
     this.dispatchConfigChanged();
   }
 
