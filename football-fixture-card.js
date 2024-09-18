@@ -295,64 +295,46 @@ class FootballFixtureCard extends HTMLElement {
 		  const awayTeamBoldClass = awayTeamName === teamName ? 'bold' : '';
 
 		  const homeTeamElement = document.createElement('div');
-		  
-		  // Conditionally wrap the score in a spoiler
-		  let homeScoreContent = fixture.score.home ?? '-';
-		  if (isTeamFixture) {
-			homeScoreContent = `<span class="spoiler">${homeScoreContent}</span>`;
-		  }
-		  
-		  homeTeamElement.innerHTML = `
-			<div class="team">
-			  <img class="team-logo" src="${fixture.home_team_logo}" alt="${homeTeamName} logo">
-			  <span class="${homeTeamBoldClass}">${homeTeamName}</span>
-			</div>
-			<div class="score" style="font-weight: ${homeScoreBold};">
-			  ${homeScoreContent}
-			</div>
-			<div class="time-or-ft">
-			  ${timeOrFT}
-			</div>
-		  `;
-		  
+		  homeTeamElement.className = 'team-container';
+			homeTeamElement.innerHTML = `
+			  <div class="team">
+				<img class="team-logo" src="${fixture.home_team_logo}" alt="${homeTeamName} logo">
+				<span class="${homeTeamBoldClass}">${homeTeamName}</span>
+			  </div>
+			  <div class="score" style="font-weight: ${homeScoreBold};">
+				<span class="spoiler">${fixture.score.home ?? '-'}</span>
+			  </div>
+			  <div class="time-or-ft">
+				${timeOrFT}
+			  </div>
+			`;
+
+			const homeScoreElement = homeTeamElement.querySelector('.score .spoiler');
+			homeScoreElement.addEventListener('click', () => {
+			  homeScoreElement.classList.toggle('revealed');
+			});
+
 		  const awayTeamElement = document.createElement('div');
 		  awayTeamElement.className = 'team-container';
-
-		  let awayScoreContent = fixture.score.away ?? '-';
-		  if (isTeamFixture) {
-			awayScoreContent = `<span class="spoiler">${awayScoreContent}</span>`;
-		  }
-
-		  awayTeamElement.innerHTML = `
-			<div class="team">
-			  <img class="team-logo" src="${fixture.away_team_logo}" alt="${awayTeamName} logo">
-			  <span class="${awayTeamBoldClass}">${awayTeamName}</span>
-			</div>
-			<div class="score" style="font-weight: ${awayScoreBold};">
-			  ${awayScoreContent}
-			</div>
-			<div class="time-or-ft">
-			  ${timeOrFT}
-			</div>
-		  `;
-			
-		  // Add event listeners to spoilers only if it's a team fixture
-		  if (isTeamFixture) {
-			const homeScoreElement = homeTeamElement.querySelector('.score .spoiler');
-			if (homeScoreElement) {
-			  homeScoreElement.addEventListener('click', () => {
-				homeScoreElement.classList.toggle('revealed');
-			  });
-			}
-
+			awayTeamElement.innerHTML = `
+			  <div class="team">
+				<img class="team-logo" src="${fixture.away_team_logo}" alt="${awayTeamName} logo">
+				<span class="${awayTeamBoldClass}">${awayTeamName}</span>
+			  </div>
+			  <div class="score" style="font-weight: ${awayScoreBold};">
+				<span class="spoiler">${fixture.score.away ?? '-'}</span>
+			  </div>
+			  <div class="time-or-ft">
+				${timeOrFT}
+			  </div>
+			`;
 			const awayScoreElement = awayTeamElement.querySelector('.score .spoiler');
-			if (awayScoreElement) {
-			  awayScoreElement.addEventListener('click', () => {
-				awayScoreElement.classList.toggle('revealed');
-			  });
-			}
+			awayScoreElement.addEventListener('click', () => {
+			  awayScoreElement.classList.toggle('revealed');
+			});
 			
-			// Make the fixture clickable if it's your team's fixture
+			
+		  if (isTeamFixture) {
 			fixtureElement.style.cursor = 'pointer';
 			fixtureElement.addEventListener('click', () => this.handleFixtureClick());
 		  }
