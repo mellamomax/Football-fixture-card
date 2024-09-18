@@ -253,9 +253,15 @@ displayFixtures(round) {
               minute: '2-digit',
             });
 
-      const teamId = Number(this.config.teamId) || 529; // Default to 529 (Barcelona) if not specified
-      const isTeamFixture =
-        fixture.home_team_id === teamId || fixture.away_team_id === teamId;
+      // Ensure IDs are numbers
+      const teamId = Number(this.config.teamId) || 529; // Default to 529 (Barcelona)
+      const homeTeamId = Number(fixture.home_team_id);
+      const awayTeamId = Number(fixture.away_team_id);
+
+      // Check if it's a team fixture
+      const isTeamFixture = homeTeamId === teamId || awayTeamId === teamId;
+
+
 
       // Determine if there is a winning team and style the score accordingly
       const homeScoreBold = fixture.score.home > fixture.score.away ? 'bold' : 'normal';
@@ -293,6 +299,7 @@ displayFixtures(round) {
 
       if (isTeamFixture) {
 		const clickHandler = () => {
+		  console.log('Fixture clicked');
 		  const moreInfoEvent = new CustomEvent('hass-more-info', {
 			bubbles: true,
 			cancelable: false,
