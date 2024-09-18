@@ -192,6 +192,21 @@ class FootballFixtureCard extends HTMLElement {
     this.displayFixtures(this.currentRound);
   }
   
+	handleFixtureClick() {
+	  const entityId = this.config.entity;
+	  console.log('Fixture clicked:', entityId);
+
+	  // Dispatch the 'hass-more-info' event
+	  const moreInfoEvent = new CustomEvent('hass-more-info', {
+		bubbles: true,
+		cancelable: false,
+		composed: true,
+		detail: { entityId: entityId },
+	  });
+	  this.dispatchEvent(moreInfoEvent);
+	}
+
+  
 	displayFixtures(round) {
 	  const entityId = this.config.entity;
 	  const state = this._hass.states[entityId];
@@ -298,21 +313,10 @@ class FootballFixtureCard extends HTMLElement {
 			</div>
 		  `;
 
-		  if (isTeamFixture) {
-			const clickHandler = () => {
-			  console.log('Fixture clicked');
-			  const moreInfoEvent = new CustomEvent('hass-more-info', {
-				bubbles: true,
-				cancelable: false,
-				composed: true,
-				detail: { entityId: entityId },
-			  });
-			  this.dispatchEvent(moreInfoEvent);
-			};
-
-			fixtureElement.style.cursor = 'pointer';
-			fixtureElement.addEventListener('click', clickHandler);
-		  }
+		if (isTeamFixture) {
+		  fixtureElement.style.cursor = 'pointer';
+		  fixtureElement.addEventListener('click', () => this.handleFixtureClick());
+		}
 
 		  fixtureElement.appendChild(homeTeamElement);
 		  fixtureElement.appendChild(awayTeamElement);
