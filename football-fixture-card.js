@@ -192,133 +192,134 @@ class FootballFixtureCard extends HTMLElement {
     this.displayFixtures(this.currentRound);
   }
   
-displayFixtures(round) {
-  const entityId = this.config.entity;
-  const state = this._hass.states[entityId];
+	displayFixtures(round) {
+	  const entityId = this.config.entity;
+	  const state = this._hass.states[entityId];
 
-  if (!state) {
-    return;
-  }
+	  if (!state) {
+		return;
+	  }
 
-  const fixturesKey = `Round ${round} Fixtures`;
-  const fixtures = state.attributes[fixturesKey] || [];
-  const root = this.shadowRoot;
-  const fixturesContainer = root.getElementById('fixtures');
-  const roundTitle = root.getElementById('round-title');
+	  const fixturesKey = `Round ${round} Fixtures`;
+	  const fixtures = state.attributes[fixturesKey] || [];
+	 
+	  const root = this.shadowRoot;
+	  const fixturesContainer = root.getElementById('fixtures');
+	  const roundTitle = root.getElementById('round-title');
 
-  // Update round title
-  roundTitle.textContent = `Round ${round}`;
+	  // Update round title
+	  roundTitle.textContent = `Round ${round}`;
 
-  // Clear any existing content
-  fixturesContainer.innerHTML = '';
+	  // Clear any existing content
+	  fixturesContainer.innerHTML = '';
 
-  // Sort fixtures by date
-  const sortedFixtures = fixtures.sort((a, b) => new Date(a.date) - new Date(b.date));
+	  // Sort fixtures by date
+	  const sortedFixtures = fixtures.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-  // Group fixtures by date
-  const groupedFixtures = sortedFixtures.reduce((acc, fixture) => {
-    const fixtureDate = new Date(fixture.date);
-    const formattedDate = fixtureDate.toLocaleDateString('sv-SE', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'long',
-    });
+	  // Group fixtures by date
+	  const groupedFixtures = sortedFixtures.reduce((acc, fixture) => {
+		const fixtureDate = new Date(fixture.date);
+		const formattedDate = fixtureDate.toLocaleDateString('sv-SE', {
+		  weekday: 'short',
+		  day: 'numeric',
+		  month: 'long',
+		});
 
-    if (!acc[formattedDate]) {
-      acc[formattedDate] = [];
-    }
-    acc[formattedDate].push(fixture);
-    return acc;
-  }, {});
+		if (!acc[formattedDate]) {
+		  acc[formattedDate] = [];
+		}
+		acc[formattedDate].push(fixture);
+		return acc;
+	  }, {});
 
-  // Render grouped fixtures
-  Object.keys(groupedFixtures).forEach((date) => {
-    const dateHeader = document.createElement('div');
-    dateHeader.className = 'date-group';
-    dateHeader.textContent = date;
-    fixturesContainer.appendChild(dateHeader);
+	  // Render grouped fixtures
+	  Object.keys(groupedFixtures).forEach((date) => {
+		const dateHeader = document.createElement('div');
+		dateHeader.className = 'date-group';
+		dateHeader.textContent = date;
+		fixturesContainer.appendChild(dateHeader);
 
-    groupedFixtures[date].forEach((fixture) => {
-      const fixtureElement = document.createElement('div');
-      fixtureElement.className = 'fixture';
+		groupedFixtures[date].forEach((fixture) => {
+		  const fixtureElement = document.createElement('div');
+		  fixtureElement.className = 'fixture';
 
-      // Determine if the fixture has finished
-      const fixtureDate = new Date(fixture.date);
-      const now = new Date();
-      const timeOrFT =
-        fixtureDate < now
-          ? 'FT'
-          : fixtureDate.toLocaleTimeString('sv-SE', {
-              hour: '2-digit',
-              minute: '2-digit',
-            });
+		  // Determine if the fixture has finished
+		  const fixtureDate = new Date(fixture.date);
+		  const now = new Date();
+		  const timeOrFT =
+			fixtureDate < now
+			  ? 'FT'
+			  : fixtureDate.toLocaleTimeString('sv-SE', {
+				  hour: '2-digit',
+				  minute: '2-digit',
+				});
 
-      // Ensure IDs are numbers
-      const teamId = Number(this.config.teamId) || 529; // Default to 529 (Barcelona)
-      const homeTeamId = Number(fixture.home_team_id);
-      const awayTeamId = Number(fixture.away_team_id);
+		  // Ensure IDs are numbers
+		  const teamId = Number(this.config.teamId) || 529; // Default to 529 (Barcelona)
+		  const homeTeamId = Number(fixture.home_team_id);
+		  const awayTeamId = Number(fixture.away_team_id);
 
-      // Check if it's a team fixture
-      const isTeamFixture = homeTeamId === teamId || awayTeamId === teamId;
+		  // Check if it's a team fixture
+		  const isTeamFixture = homeTeamId === teamId || awayTeamId === teamId;
 
 
 
-      // Determine if there is a winning team and style the score accordingly
-      const homeScoreBold = fixture.score.home > fixture.score.away ? 'bold' : 'normal';
-      const awayScoreBold = fixture.score.away > fixture.score.home ? 'bold' : 'normal';
+		  // Determine if there is a winning team and style the score accordingly
+		  const homeScoreBold = fixture.score.home > fixture.score.away ? 'bold' : 'normal';
+		  const awayScoreBold = fixture.score.away > fixture.score.home ? 'bold' : 'normal';
 
-      const homeTeamElement = document.createElement('div');
-      homeTeamElement.className = 'team-container';
-      homeTeamElement.innerHTML = `
-        <div class="team">
-          <img class="team-logo" src="${fixture.home_team_logo}" alt="${fixture.home_team} logo">
-          <span class="${fixture.home_team_id === teamId ? 'bold' : ''}">${fixture.home_team}</span>
-        </div>
-        <div class="score" style="font-weight: ${homeScoreBold};">
-          ${fixture.score.home ?? '-'}
-        </div>
-        <div class="time-or-ft">
-          ${timeOrFT}
-        </div>
-      `;
+		  const homeTeamElement = document.createElement('div');
+		  homeTeamElement.className = 'team-container';
+		  homeTeamElement.innerHTML = `
+			<div class="team">
+			  <img class="team-logo" src="${fixture.home_team_logo}" alt="${fixture.home_team} logo">
+			  <span class="${fixture.home_team_id === teamId ? 'bold' : ''}">${fixture.home_team}</span>
+			</div>
+			<div class="score" style="font-weight: ${homeScoreBold};">
+			  ${fixture.score.home ?? '-'}
+			</div>
+			<div class="time-or-ft">
+			  ${timeOrFT}
+			</div>
+		  `;
 
-      const awayTeamElement = document.createElement('div');
-      awayTeamElement.className = 'team-container';
-      awayTeamElement.innerHTML = `
-        <div class="team">
-          <img class="team-logo" src="${fixture.away_team_logo}" alt="${fixture.away_team} logo">
-          <span class="${fixture.away_team_id === teamId ? 'bold' : ''}">${fixture.away_team}</span>
-        </div>
-        <div class="score" style="font-weight: ${awayScoreBold};">
-          ${fixture.score.away ?? '-'}
-        </div>
-        <div class="time-or-ft">
-          ${timeOrFT}
-        </div>
-      `;
+		  const awayTeamElement = document.createElement('div');
+		  awayTeamElement.className = 'team-container';
+		  awayTeamElement.innerHTML = `
+			<div class="team">
+			  <img class="team-logo" src="${fixture.away_team_logo}" alt="${fixture.away_team} logo">
+			  <span class="${fixture.away_team_id === teamId ? 'bold' : ''}">${fixture.away_team}</span>
+			</div>
+			<div class="score" style="font-weight: ${awayScoreBold};">
+			  ${fixture.score.away ?? '-'}
+			</div>
+			<div class="time-or-ft">
+			  ${timeOrFT}
+			</div>
+		  `;
 
-      if (isTeamFixture) {
-		const clickHandler = () => {
-		  console.log('Fixture clicked');
-		  const moreInfoEvent = new CustomEvent('hass-more-info', {
-			bubbles: true,
-			cancelable: false,
-			composed: true,
-			detail: { entityId: entityId },
-		  });
-		  this.dispatchEvent(moreInfoEvent);
-		};
+		  if (isTeamFixture) {
+			const clickHandler = () => {
+			  console.log('Fixture clicked');
+			  const moreInfoEvent = new CustomEvent('hass-more-info', {
+				bubbles: true,
+				cancelable: false,
+				composed: true,
+				detail: { entityId: entityId },
+			  });
+			  this.dispatchEvent(moreInfoEvent);
+			};
 
-        fixtureElement.style.cursor = 'pointer';
-        fixtureElement.addEventListener('click', clickHandler);
-      }
+			fixtureElement.style.cursor = 'pointer';
+			fixtureElement.addEventListener('click', clickHandler);
+		  }
 
-      fixtureElement.appendChild(homeTeamElement);
-      fixtureElement.appendChild(awayTeamElement);
-      fixturesContainer.appendChild(fixtureElement);
-    });
-  });
-}
+		  fixtureElement.appendChild(homeTeamElement);
+		  fixtureElement.appendChild(awayTeamElement);
+		  fixturesContainer.appendChild(fixtureElement);
+		});
+	  });
+	}
 
   getCardSize() {
     return 3; // Adjust as needed
