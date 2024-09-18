@@ -217,7 +217,6 @@ class FootballFixtureCard extends HTMLElement {
 
 	  const fixturesKey = `Round ${round} Fixtures`;
 	  const fixtures = state.attributes[fixturesKey] || [];
-	 
 	  const root = this.shadowRoot;
 	  const fixturesContainer = root.getElementById('fixtures');
 	  const roundTitle = root.getElementById('round-title');
@@ -227,6 +226,11 @@ class FootballFixtureCard extends HTMLElement {
 
 	  // Clear any existing content
 	  fixturesContainer.innerHTML = '';
+
+	  if (fixtures.length === 0) {
+		fixturesContainer.innerHTML = '<div>No fixtures available for this round.</div>';
+		return;
+	  }
 
 	  // Sort fixtures by date
 	  const sortedFixtures = fixtures.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -269,31 +273,33 @@ class FootballFixtureCard extends HTMLElement {
 				  minute: '2-digit',
 				});
 
+		  // Use team names from the fixture data
+		  const teamName = this.config.teamName || 'Barcelona'; // Default to 'Barcelona'
 
-		  console.log('Fixture object:', fixture);
-		  // Ensure IDs are numbers
-		  const teamId = Number(this.config.teamId) || 529; // Default to 529 (Barcelona)
-		  const homeTeamId = Number(fixture.home_team_id);
-		  const awayTeamId = Number(fixture.away_team_id);
+		  const homeTeamName = fixture.home_team;
+		  const awayTeamName = fixture.away_team;
 
 		  // Check if it's a team fixture
-		  const isTeamFixture = homeTeamId === teamId || awayTeamId === teamId;
-			console.log('Team ID from config:', teamId);
-			console.log('Home Team ID:', homeTeamId);
-			console.log('Away Team ID:', awayTeamId);
-			console.log('isTeamFixture:', isTeamFixture);
+		  const isTeamFixture = homeTeamName === teamName || awayTeamName === teamName;
 
+		  console.log('Team Name from config:', teamName);
+		  console.log('Home Team Name:', homeTeamName);
+		  console.log('Away Team Name:', awayTeamName);
+		  console.log('isTeamFixture:', isTeamFixture);
 
 		  // Determine if there is a winning team and style the score accordingly
 		  const homeScoreBold = fixture.score.home > fixture.score.away ? 'bold' : 'normal';
 		  const awayScoreBold = fixture.score.away > fixture.score.home ? 'bold' : 'normal';
 
+		  const homeTeamBoldClass = homeTeamName === teamName ? 'bold' : '';
+		  const awayTeamBoldClass = awayTeamName === teamName ? 'bold' : '';
+
 		  const homeTeamElement = document.createElement('div');
 		  homeTeamElement.className = 'team-container';
 		  homeTeamElement.innerHTML = `
 			<div class="team">
-			  <img class="team-logo" src="${fixture.home_team_logo}" alt="${fixture.home_team} logo">
-			  <span class="${fixture.home_team_id === teamId ? 'bold' : ''}">${fixture.home_team}</span>
+			  <img class="team-logo" src="${fixture.home_team_logo}" alt="${homeTeamName} logo">
+			  <span class="${homeTeamBoldClass}">${homeTeamName}</span>
 			</div>
 			<div class="score" style="font-weight: ${homeScoreBold};">
 			  ${fixture.score.home ?? '-'}
@@ -307,8 +313,8 @@ class FootballFixtureCard extends HTMLElement {
 		  awayTeamElement.className = 'team-container';
 		  awayTeamElement.innerHTML = `
 			<div class="team">
-			  <img class="team-logo" src="${fixture.away_team_logo}" alt="${fixture.away_team} logo">
-			  <span class="${fixture.away_team_id === teamId ? 'bold' : ''}">${fixture.away_team}</span>
+			  <img class="team-logo" src="${fixture.away_team_logo}" alt="${awayTeamName} logo">
+			  <span class="${awayTeamBoldClass}">${awayTeamName}</span>
 			</div>
 			<div class="score" style="font-weight: ${awayScoreBold};">
 			  ${fixture.score.away ?? '-'}
@@ -318,11 +324,10 @@ class FootballFixtureCard extends HTMLElement {
 			</div>
 		  `;
 
-		if (isTeamFixture) {
-		  console.log('Attaching click handler to fixture:', fixture);
-		  fixtureElement.style.cursor = 'pointer';
-		  fixtureElement.addEventListener('click', () => this.handleFixtureClick());
-		}
+		  if (isTeamFixture) {
+			fixtureElement.style.cursor = 'pointer';
+			fixtureElement.addEventListener('click', () => this.handleFixtureClick());
+		  }
 
 		  fixtureElement.appendChild(homeTeamElement);
 		  fixtureElement.appendChild(awayTeamElement);
@@ -330,6 +335,9 @@ class FootballFixtureCard extends HTMLElement {
 		});
 	  });
 	}
+
+
+
 
   getCardSize() {
     return 3; // Adjust as needed
@@ -342,7 +350,7 @@ class FootballFixtureCard extends HTMLElement {
   static getStubConfig() {
     return {
       entity: '',
-      teamId: '',
+      teamName: '',
       league: '',
     };
   }
@@ -563,8 +571,8 @@ class FootballFixtureCardEditor extends HTMLElement {
 			<ul class="dropdown-list" id="entity-list" style="display: none;"></ul>
 		</div>
 		<div class="input-container">
-		  <label for="team-id">Team Id</label>
-		  <input id="team-id" type="text" value="${this.config.teamId || ''}">
+		  <label for="team-name">Team Name</label>
+		  <input id="team-name" type="text" value="${this.config.teamName || ''}">
 		</div>
 		<div class="input-container">
 			<label for="league">League</label>
@@ -574,7 +582,7 @@ class FootballFixtureCardEditor extends HTMLElement {
 
     this.dropdownInput = this.shadowRoot.querySelector('#dropdown-input');
     this.entityList = this.shadowRoot.querySelector('#entity-list');
-    this.teamIdInput = this.shadowRoot.querySelector('#team-id');
+    this.teamNameInput = this.shadowRoot.querySelector('#team-name');
     this.leagueInput = this.shadowRoot.querySelector('#league');
 
     this.addEventListeners();
@@ -584,7 +592,7 @@ class FootballFixtureCardEditor extends HTMLElement {
   addEventListeners() {
     this.dropdownInput.addEventListener('input', (e) => this.handleInput(e));
     this.dropdownInput.addEventListener('click', (e) => this.toggleDropdown(e));
-    this.teamIdInput.addEventListener('change', (e) => this.handleTeamIdChange(e));
+    this.teamNameInput.addEventListener('change', (e) => this.handleTeamNameChange(e));
     this.leagueInput.addEventListener('change', (e) => this.handleLeagueChange(e));
 
     // Close the dropdown when clicking outside
@@ -598,7 +606,7 @@ class FootballFixtureCardEditor extends HTMLElement {
 
   updateInputValues() {
     this.dropdownInput.value = this.getEntityFriendlyName(this.config.entity);
-    this.teamIdInput.value = this.config.teamId || '';
+    this.teamNameInput.value = this.config.teamName || '';
     this.leagueInput.value = this.config.league || '';
   }
 
@@ -672,8 +680,8 @@ class FootballFixtureCardEditor extends HTMLElement {
     this.dispatchConfigChanged();
   }
 
-  handleTeamIdChange(e) {
-    this.config.teamId = e.target.value;
+  handleTeamNameChange(e) {
+    this.config.teamName = e.target.value;
     this.dispatchConfigChanged();
   }
 
