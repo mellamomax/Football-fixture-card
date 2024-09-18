@@ -193,9 +193,9 @@ class FootballFixtureCard extends HTMLElement {
   }
   
 	handleFixtureClick() {
+	  console.log('handleFixtureClick called');
 	  const entityId = this.config.entity;
 	  console.log('Fixture clicked:', entityId);
-
 	  // Dispatch the 'hass-more-info' event
 	  const moreInfoEvent = new CustomEvent('hass-more-info', {
 		bubbles: true,
@@ -276,7 +276,10 @@ class FootballFixtureCard extends HTMLElement {
 
 		  // Check if it's a team fixture
 		  const isTeamFixture = homeTeamId === teamId || awayTeamId === teamId;
-
+			console.log('Team ID from config:', teamId);
+			console.log('Home Team ID:', homeTeamId);
+			console.log('Away Team ID:', awayTeamId);
+			console.log('isTeamFixture:', isTeamFixture);
 
 
 		  // Determine if there is a winning team and style the score accordingly
@@ -314,6 +317,7 @@ class FootballFixtureCard extends HTMLElement {
 		  `;
 
 		if (isTeamFixture) {
+		  console.log('Attaching click handler to fixture:', fixture);
 		  fixtureElement.style.cursor = 'pointer';
 		  fixtureElement.addEventListener('click', () => this.handleFixtureClick());
 		}
