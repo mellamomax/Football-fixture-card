@@ -282,6 +282,17 @@ class FootballFixtureCard extends HTMLElement {
 		  // Check if it's a team fixture
 		  const isTeamFixture = homeTeamName === teamName || awayTeamName === teamName;
 
+			// Add this to determine if scores should be hidden
+			let homeScoreDisplay = fixture.score.home ?? '-';
+			let awayScoreDisplay = fixture.score.away ?? '-';
+
+			if (isTeamFixture && fixtureDate < now) {
+			  // Hide scores to prevent spoilers
+			  homeScoreDisplay = '-';
+			  awayScoreDisplay = '-';
+			}
+
+
 		  console.log('Team Name from config:', teamName);
 		  console.log('Home Team Name:', homeTeamName);
 		  console.log('Away Team Name:', awayTeamName);
@@ -296,33 +307,33 @@ class FootballFixtureCard extends HTMLElement {
 
 		  const homeTeamElement = document.createElement('div');
 		  homeTeamElement.className = 'team-container';
-		  homeTeamElement.innerHTML = `
-			<div class="team">
-			  <img class="team-logo" src="${fixture.home_team_logo}" alt="${homeTeamName} logo">
-			  <span class="${homeTeamBoldClass}">${homeTeamName}</span>
-			</div>
-			<div class="score" style="font-weight: ${homeScoreBold};">
-			  ${fixture.score.home ?? '-'}
-			</div>
-			<div class="time-or-ft">
-			  ${timeOrFT}
-			</div>
-		  `;
+			homeTeamElement.innerHTML = `
+			  <div class="team">
+				<img class="team-logo" src="${fixture.home_team_logo}" alt="${homeTeamName} logo">
+				<span class="${homeTeamBoldClass}">${homeTeamName}</span>
+			  </div>
+			  <div class="score" style="font-weight: ${homeScoreBold};">
+				${homeScoreDisplay}
+			  </div>
+			  <div class="time-or-ft">
+				${timeOrFT}
+			  </div>
+			`;
 
 		  const awayTeamElement = document.createElement('div');
 		  awayTeamElement.className = 'team-container';
-		  awayTeamElement.innerHTML = `
-			<div class="team">
-			  <img class="team-logo" src="${fixture.away_team_logo}" alt="${awayTeamName} logo">
-			  <span class="${awayTeamBoldClass}">${awayTeamName}</span>
-			</div>
-			<div class="score" style="font-weight: ${awayScoreBold};">
-			  ${fixture.score.away ?? '-'}
-			</div>
-			<div class="time-or-ft">
-			  ${timeOrFT}
-			</div>
-		  `;
+			awayTeamElement.innerHTML = `
+			  <div class="team">
+				<img class="team-logo" src="${fixture.away_team_logo}" alt="${awayTeamName} logo">
+				<span class="${awayTeamBoldClass}">${awayTeamName}</span>
+			  </div>
+			  <div class="score" style="font-weight: ${awayScoreBold};">
+				${awayScoreDisplay}
+			  </div>
+			  <div class="time-or-ft">
+				${timeOrFT}
+			  </div>
+			`;
 
 		  if (isTeamFixture) {
 			fixtureElement.style.cursor = 'pointer';
