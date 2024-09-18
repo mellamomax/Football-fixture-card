@@ -306,12 +306,12 @@ class FootballFixtureCard extends HTMLElement {
           const awayScore = awayTeamElement.querySelector('.score');
 
           homeScore.addEventListener('click', function (event) {
-            event.stopPropagation();
+
             this.classList.add('revealed');
             this.textContent = `${fixture.score.home ?? '-'}`;
           });
           awayScore.addEventListener('click', function (event) {
-            event.stopPropagation();
+
             this.classList.add('revealed');
             this.textContent = `${fixture.score.away ?? '-'}`;
           });
