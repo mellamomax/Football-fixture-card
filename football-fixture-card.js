@@ -312,9 +312,6 @@ class FootballFixtureCard extends HTMLElement {
 				<img class="team-logo" src="${fixture.home_team_logo}" alt="${homeTeamName} logo">
 				<span class="${homeTeamBoldClass}">${homeTeamName}</span>
 			  </div>
-			  <div class="score" style="font-weight: ${homeScoreBold};">
-				${homeScoreDisplay}
-			  </div>
 			  <div class="time-or-ft">
 				${timeOrFT}
 			  </div>
@@ -327,20 +324,57 @@ class FootballFixtureCard extends HTMLElement {
 				<img class="team-logo" src="${fixture.away_team_logo}" alt="${awayTeamName} logo">
 				<span class="${awayTeamBoldClass}">${awayTeamName}</span>
 			  </div>
-			  <div class="score" style="font-weight: ${awayScoreBold};">
-				${awayScoreDisplay}
-			  </div>
 			  <div class="time-or-ft">
 				${timeOrFT}
 			  </div>
 			`;
 
+			// Create the scores container
+			const scoresContainer = document.createElement('div');
+			scoresContainer.className = 'scores-container';
+
+			// Initialize score displays
+			let homeScoreDisplay = fixture.score.home ?? '-';
+			let awayScoreDisplay = fixture.score.away ?? '-';
+
+			// Hide scores to prevent spoilers
+			if (isTeamFixture && fixtureDate < now) {
+			  homeScoreDisplay = '-';
+			  awayScoreDisplay = '-';
+			}
+
+			// Set the innerHTML of scoresContainer
+			scoresContainer.innerHTML = `
+			  <div class="score" style="font-weight: ${homeScoreBold};">
+				${homeScoreDisplay}
+			  </div>
+			  <div class="score" style="font-weight: ${awayScoreBold};">
+				${awayScoreDisplay}
+			  </div>
+			`;
+
+			if (isTeamFixture && fixtureDate < now) {
+			  scoresContainer.style.cursor = 'pointer';
+			  scoresContainer.addEventListener('click', () => {
+				// Reveal the actual scores
+				scoresContainer.innerHTML = `
+				  <div class="score" style="font-weight: ${homeScoreBold};">
+					${fixture.score.home ?? '-'}
+				  </div>
+				  <div class="score" style="font-weight: ${awayScoreBold};">
+					${fixture.score.away ?? '-'}
+				  </div>
+				`;
+			  });
+			}
+			
 		  if (isTeamFixture) {
 			fixtureElement.style.cursor = 'pointer';
 			fixtureElement.addEventListener('click', () => this.handleFixtureClick());
 		  }
 
 		  fixtureElement.appendChild(homeTeamElement);
+		  fixtureElement.appendChild(scoresContainer); // Add this line
 		  fixtureElement.appendChild(awayTeamElement);
 		  fixturesContainer.appendChild(fixtureElement);
 		});
