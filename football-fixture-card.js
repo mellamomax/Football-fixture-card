@@ -269,6 +269,8 @@ class FootballFixtureCard extends HTMLElement {
 				  minute: '2-digit',
 				});
 
+
+		  console.log('Fixture object:', fixture);
 		  // Ensure IDs are numbers
 		  const teamId = Number(this.config.teamId) || 529; // Default to 529 (Barcelona)
 		  const homeTeamId = Number(fixture.home_team_id);
