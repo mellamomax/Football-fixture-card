@@ -100,7 +100,7 @@ class FootballFixtureCard extends HTMLElement {
 		.time-or-ft {
 			font-size: 0.9em;
 			color: var(--primary-text-color, #000);
-			margin-left: 10px;
+			margin-left: 5px;
 		}
         .team-container {
           display: flex;
@@ -115,7 +115,7 @@ class FootballFixtureCard extends HTMLElement {
         .team-logo {
           height: 20px;
           width: 20px;
-          margin-right: 10px;
+		  vertical-align: middle;
         }
         .score {
           font-weight: normal;
@@ -251,117 +251,76 @@ class FootballFixtureCard extends HTMLElement {
 		return acc;
 	  }, {});
 
-	  // Render grouped fixtures
-	  Object.keys(groupedFixtures).forEach((date) => {
-		const dateHeader = document.createElement('div');
-		dateHeader.className = 'date-group';
-		dateHeader.textContent = date;
-		fixturesContainer.appendChild(dateHeader);
+	// Render grouped fixtures
+	Object.keys(groupedFixtures).forEach((date) => {
+	  const dateHeader = document.createElement('div');
+	  dateHeader.className = 'date-group';
+	  dateHeader.textContent = date;
+	  fixturesContainer.appendChild(dateHeader);
 
-		groupedFixtures[date].forEach((fixture) => {
-		  const fixtureElement = document.createElement('div');
-		  fixtureElement.className = 'fixture';
+	  const table = document.createElement('table');
+	  table.style.width = '100%';
+	  table.style.borderCollapse = 'collapse';
+	  table.style.marginBottom = '20px';
 
-		  // Determine if the fixture has finished
-		  const fixtureDate = new Date(fixture.date);
-		  const now = new Date();
-		  const timeOrFT =
-			fixtureDate < now
-			  ? 'FT'
-			  : fixtureDate.toLocaleTimeString('sv-SE', {
-				  hour: '2-digit',
-				  minute: '2-digit',
-				});
+	  groupedFixtures[date].forEach((fixture) => {
+		const row = document.createElement('tr');
 
-		  // Use team names from the fixture data
-		  const teamName = this.config.teamName || 'Barcelona'; // Default to 'Barcelona'
+		const fixtureDate = new Date(fixture.date);
+		const now = new Date();
+		const timeOrFT = fixtureDate < now
+		  ? 'FT'
+		  : fixtureDate.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
 
-		  const homeTeamName = fixture.home_team;
-		  const awayTeamName = fixture.away_team;
+		const createCell = (content, align = 'center') => {
+		  const cell = document.createElement('td');
+		  cell.innerHTML = content;
+		  cell.style.textAlign = align;
+		  cell.style.padding = '4px';
+		  return cell;
+		};
 
-		  // Check if it's a team fixture
-		  const isTeamFixture = homeTeamName === teamName || awayTeamName === teamName;
+		const teamName = this.config.teamName || 'Barcelona'; // Default
+		const isTeamFixture = fixture.home_team === teamName || fixture.away_team === teamName;
 
-		  console.log('Team Name from config:', teamName);
-		  console.log('Home Team Name:', homeTeamName);
-		  console.log('Away Team Name:', awayTeamName);
-		  console.log('isTeamFixture:', isTeamFixture);
+		let homeScore = fixture.score.home ?? '-';
+		let awayScore = fixture.score.away ?? '-';
 
-		  // Determine if there is a winning team and style the score accordingly
-		  const homeScoreBold = fixture.score.home > fixture.score.away ? 'bold' : 'normal';
-		  const awayScoreBold = fixture.score.away > fixture.score.home ? 'bold' : 'normal';
+		if (isTeamFixture) {
+		  homeScore = `<span class="spoiler">${homeScore}</span>`;
+		  awayScore = `<span class="spoiler">${awayScore}</span>`;
+		}
 
-		  const homeTeamBoldClass = homeTeamName === teamName ? 'bold' : '';
-		  const awayTeamBoldClass = awayTeamName === teamName ? 'bold' : '';
+		row.appendChild(createCell(fixture.home_team, 'right'));
+		row.appendChild(createCell(`<img class="team-logo" src="${fixture.home_team_logo}" alt="${fixture.home_team} logo">`));
+		row.appendChild(createCell(homeScore));
+		row.appendChild(createCell('-'));
+		row.appendChild(createCell(awayScore));
+		row.appendChild(createCell(`<img class="team-logo" src="${fixture.away_team_logo}" alt="${fixture.away_team} logo">`));
+		row.appendChild(createCell(fixture.away_team, 'left'));
+		row.appendChild(createCell(`<span class="time-or-ft">${timeOrFT}</span>`, 'left'));
 
-		  const homeTeamElement = document.createElement('div');
-		  
-		  // Conditionally wrap the score in a spoiler
-		  let homeScoreContent = fixture.score.home ?? '-';
-		  if (isTeamFixture) {
-			homeScoreContent = `<span class="spoiler">${homeScoreContent}</span>`;
-		  }
-		  
-		  homeTeamElement.innerHTML = `
-			<div class="team">
-			  <img class="team-logo" src="${fixture.home_team_logo}" alt="${homeTeamName} logo">
-			  <span class="${homeTeamBoldClass}">${homeTeamName}</span>
-			</div>
-			<div class="score" style="font-weight: ${homeScoreBold};">
-			  ${homeScoreContent}
-			</div>
-			<div class="time-or-ft">
-			  ${timeOrFT}
-			</div>
-		  `;
-		  
-		  const awayTeamElement = document.createElement('div');
-		  awayTeamElement.className = 'team-container';
+		if (isTeamFixture) {
+		  row.style.cursor = 'pointer';
+		  row.addEventListener('click', () => this.handleFixtureClick());
 
-		  let awayScoreContent = fixture.score.away ?? '-';
-		  if (isTeamFixture) {
-			awayScoreContent = `<span class="spoiler">${awayScoreContent}</span>`;
-		  }
-
-		  awayTeamElement.innerHTML = `
-			<div class="team">
-			  <img class="team-logo" src="${fixture.away_team_logo}" alt="${awayTeamName} logo">
-			  <span class="${awayTeamBoldClass}">${awayTeamName}</span>
-			</div>
-			<div class="score" style="font-weight: ${awayScoreBold};">
-			  ${awayScoreContent}
-			</div>
-			<div class="time-or-ft">
-			  ${timeOrFT}
-			</div>
-		  `;
-			
-		  // Add event listeners to spoilers only if it's a team fixture
-		  if (isTeamFixture) {
-			const homeScoreElement = homeTeamElement.querySelector('.score .spoiler');
-			if (homeScoreElement) {
-			  homeScoreElement.addEventListener('click', () => {
-				homeScoreElement.classList.toggle('revealed');
+		  // Spoiler toggles
+		  setTimeout(() => {
+			row.querySelectorAll('.spoiler').forEach(el => {
+			  el.addEventListener('click', (e) => {
+				e.stopPropagation();
+				el.classList.toggle('revealed');
 			  });
-			}
+			});
+		  }, 0);
+		}
 
-			const awayScoreElement = awayTeamElement.querySelector('.score .spoiler');
-			if (awayScoreElement) {
-			  awayScoreElement.addEventListener('click', () => {
-				awayScoreElement.classList.toggle('revealed');
-			  });
-			}
-			
-			// Make the fixture clickable if it's your team's fixture
-			fixtureElement.style.cursor = 'pointer';
-			fixtureElement.addEventListener('click', () => this.handleFixtureClick());
-		  }
-
-		  fixtureElement.appendChild(homeTeamElement);
-		  fixtureElement.appendChild(awayTeamElement);
-		  fixturesContainer.appendChild(fixtureElement);
-		});
+		table.appendChild(row);
 	  });
+
+	  fixturesContainer.appendChild(table);
+	});
+
 	}
 
 
