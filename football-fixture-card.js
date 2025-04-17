@@ -101,6 +101,7 @@ class FootballFixtureCard extends HTMLElement {
 			font-size: 0.9em;
 			color: var(--primary-text-color, #000);
 			margin-left: 5px;
+			font-weight: bold;
 		}
         .team-container {
           display: flex;
@@ -253,15 +254,21 @@ class FootballFixtureCard extends HTMLElement {
 
 	// Render grouped fixtures
 	Object.keys(groupedFixtures).forEach((date) => {
-	  const dateHeader = document.createElement('div');
-	  dateHeader.className = 'date-group';
-	  dateHeader.textContent = date;
-	  fixturesContainer.appendChild(dateHeader);
-
 	  const table = document.createElement('table');
 	  table.style.width = '100%';
 	  table.style.borderCollapse = 'collapse';
 	  table.style.marginBottom = '20px';
+
+	  // Create a special header row for the date
+	  const dateRow = document.createElement('tr');
+	  const dateCell = document.createElement('td');
+	  dateCell.textContent = date;
+	  dateCell.colSpan = 8; // Span across all 8 columns
+	  dateCell.className = 'date-group';
+	  dateCell.style.textAlign = 'center';
+	  dateCell.style.padding = '10px 0';
+	  dateRow.appendChild(dateCell);
+	  table.appendChild(dateRow);
 
 	  groupedFixtures[date].forEach((fixture) => {
 		const row = document.createElement('tr');
@@ -276,15 +283,17 @@ class FootballFixtureCard extends HTMLElement {
 		  const cell = document.createElement('td');
 		  cell.innerHTML = content;
 		  cell.style.textAlign = align;
-		  cell.style.padding = '4px';
+		  cell.style.padding = '2px 4px';    
+		  cell.style.whiteSpace = 'nowrap'; 
 		  return cell;
 		};
 
-		const teamName = this.config.teamName || 'Barcelona'; // Default
+		const teamName = this.config.teamName || 'Barcelona'; 
 		const isTeamFixture = fixture.home_team === teamName || fixture.away_team === teamName;
 
-		let homeScore = fixture.score.home ?? '-';
-		let awayScore = fixture.score.away ?? '-';
+		const hasResult = fixture.score.home != null && fixture.score.away != null;
+		let homeScore = hasResult ? fixture.score.home : '';
+		let awayScore = hasResult ? fixture.score.away : '';
 
 		if (isTeamFixture) {
 		  homeScore = `<span class="spoiler">${homeScore}</span>`;
@@ -294,7 +303,11 @@ class FootballFixtureCard extends HTMLElement {
 		row.appendChild(createCell(fixture.home_team, 'right'));
 		row.appendChild(createCell(`<img class="team-logo" src="${fixture.home_team_logo}" alt="${fixture.home_team} logo">`));
 		row.appendChild(createCell(homeScore));
-		row.appendChild(createCell('-'));
+		if (hasResult) {
+		  row.appendChild(createCell('–', 'center'));
+		} else {
+		  row.appendChild(createCell('', 'center'));
+		}
 		row.appendChild(createCell(awayScore));
 		row.appendChild(createCell(`<img class="team-logo" src="${fixture.away_team_logo}" alt="${fixture.away_team} logo">`));
 		row.appendChild(createCell(fixture.away_team, 'left'));
@@ -304,15 +317,12 @@ class FootballFixtureCard extends HTMLElement {
 		  row.style.cursor = 'pointer';
 		  row.addEventListener('click', () => this.handleFixtureClick());
 
-		  // Spoiler toggles
-		  setTimeout(() => {
-			row.querySelectorAll('.spoiler').forEach(el => {
-			  el.addEventListener('click', (e) => {
-				e.stopPropagation();
-				el.classList.toggle('revealed');
-			  });
+		  row.querySelectorAll('.spoiler').forEach(el => {
+			el.addEventListener('click', (e) => {
+			  e.stopPropagation();
+			  el.classList.toggle('revealed');
 			});
-		  }, 0);
+		  });
 		}
 
 		table.appendChild(row);
@@ -321,7 +331,6 @@ class FootballFixtureCard extends HTMLElement {
 	  fixturesContainer.appendChild(table);
 	});
 
-	}
 
 
 
