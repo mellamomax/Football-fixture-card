@@ -252,7 +252,7 @@ class FootballFixtureCard extends HTMLElement {
 		return acc;
 	  }, {});
 
-	// Render grouped fixtures 
+	// Render grouped fixtures
 	Object.keys(groupedFixtures).forEach((date) => {
 	  const table = document.createElement('table');
 	  table.style.width = '100%';
