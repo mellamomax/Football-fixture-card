@@ -331,7 +331,7 @@ class FootballFixtureCard extends HTMLElement {
 	  fixturesContainer.appendChild(table);
 	});
 
-
+}
 
 
 
